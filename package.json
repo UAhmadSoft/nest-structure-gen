@@ -1,0 +1,31 @@
+{
+  "name": "nestjs-resource-generator",
+  "version": "1.0.0",
+  "description": "NestJS resource file generator",
+  "main": "generator.js",
+  "bin": {
+    "nestjs-resource-generate": "./cli.js"
+  },
+  "scripts": {
+    "start": "node generator.js"
+  },
+  "keywords": [
+    "nestjs",
+    "generator",
+    "typescript",
+    "resource",
+    "crud"
+  ],
+  "author": "your name",
+  "license": "MIT",
+  "dependencies": {
+    "pluralize": "^8.0.0",
+    "prettier": "^2.8.8",
+    "ts-morph": "^19.0.0",
+    "typescript": "^5.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "your-repo-url"
+  }
+}
