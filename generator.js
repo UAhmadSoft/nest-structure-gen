@@ -241,7 +241,7 @@ class NestjsResourceGenerator {
 
       export interface I${entityName} {
         create${entityName}(${this.getCamelCase(table.name)}Model: ${entityName}Model): Promise<Fetch${entityName}Model>;
-        get${entityName}(id: ${this.schema.char_primary_key ? 'string' : 'number'}): Promise<Fetch${entityName}Model>;
+        get${entityName}ById(id: ${this.schema.char_primary_key ? 'string' : 'number'}): Promise<Fetch${entityName}Model>;
         get${this.getPlural(entityName)}(query: Query${entityName}Dto): Promise<PaginatedResponse<Fetch${entityName}Model>>;
         update${entityName}(id: ${this.schema.char_primary_key ? 'string' : 'number'}, update${entityName}Model: Update${entityName}Model): Promise<Fetch${entityName}Model>;
         delete${entityName}(id: ${this.schema.char_primary_key ? 'string' : 'number'}): Promise<void>;
@@ -280,7 +280,7 @@ class NestjsResourceGenerator {
           return ${this.getCamelCase(table.name)};
         }
 
-        async get${entityName}(id: ${this.schema.char_primary_key ? 'string' : 'number'}): Promise<Fetch${entityName}Model> {
+        async get${entityName}ById(id: ${this.schema.char_primary_key ? 'string' : 'number'}): Promise<Fetch${entityName}Model> {
           return await this.${this.getCamelCase(table.name)}Repository.findOne({ where: { id } });
         }
 
@@ -403,8 +403,8 @@ class NestjsResourceGenerator {
           return await this.${this.getCamelCase(table.name)}Repository.create${entityName}(${this.getCamelCase(table.name)}Model);
         }
 
-        async get${entityName}(id: ${this.schema.char_primary_key ? 'string' : 'number'}) {
-          return await this.${this.getCamelCase(table.name)}Repository.get${entityName}(id);
+        async get${entityName}ById(id: ${this.schema.char_primary_key ? 'string' : 'number'}) {
+          return await this.${this.getCamelCase(table.name)}Repository.get${entityName}ById(id);
         }
 
         async get${this.getPlural(entityName)}(query: Query${entityName}Dto) {
@@ -465,8 +465,8 @@ class NestjsResourceGenerator {
 
       @Get(':id')
       @ApiOperation({ summary: 'Get ${table.name} by id' })
-      get${entityName}(@Param('id', ParseIntPipe) id: ${this.schema.char_primary_key ? 'string' : 'number'}) {
-        return this.${this.getCamelCase(table.name)}UseCases.get${entityName}(id);
+      get${entityName}ById(@Param('id', ParseIntPipe) id: ${this.schema.char_primary_key ? 'string' : 'number'}) {
+        return this.${this.getCamelCase(table.name)}UseCases.get${entityName}ById(id);
       }
 
       @Get()
@@ -582,14 +582,14 @@ class NestjsResourceGenerator {
                   type: '${prop.type}',
                   ${prop.nullable ? 'isNullable: true,' : ''}
                 },
-              `).join('\n')},
-              ${Object.entries(table.relations).map(([key, prop]) => prop.type === 'ManyToOne' ? `
+              `).join('\n')}
+              ${Object.entries(table.relations).length > 0 ? Object.entries(table.relations).map(([key, prop]) => prop.type === 'ManyToOne' ? `
                 {
                   name: '${key}',
                   type: 'number',
                   ${prop.nullable ? 'isNullable: true,' : ''}
                 },
-              ` : '').join('\n')},
+              ` : '').join('\n').concat(",") : ""}
               {
                 name: 'created_on',
                 type: 'timestamptz',
@@ -864,7 +864,7 @@ class NestjsResourceGenerator {
           },
           migration: {
             content: await (this.generateMigration(table)),
-            path: path.join(this.schema.url, 'infrastructure/migrations', `${Date.now()}-create-${this.getCamelCase(this.getPlural(table.name))}-table.ts`)
+            path: path.join(this.schema.url, '../database/migrations', `${Date.now()}-create-${this.getCamelCase(this.getPlural(table.name))}-table.ts`)
           },
           model: {
             content: await (this.generateModel(table)),
