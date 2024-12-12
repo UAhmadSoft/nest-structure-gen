@@ -1,0 +1,53 @@
+{
+      "name": "Seller",
+      "create_pagination_route": true,
+      "create_relation_get_route": true,
+      "properties": {
+        "email": {
+          "type": "varchar"
+        },
+        "first_name": {
+          "type": "varchar"
+        },
+        "last_name": {
+          "type": "varchar",
+          "nullable": false
+        },
+        "message": {
+          "type": "varchar"
+        }
+      },
+      "relations": {
+        "products": {
+          "type": "OneToMany",
+          "entity": "Product",
+          "required": false
+        }
+      }
+    },
+    {
+      "name": "Product",
+      "create_pagination_route": true,
+      "create_relation_get_route": true,
+      "properties": {
+        "title": {
+          "type": "varchar"
+        },
+        "description": {
+          "type": "varchar"
+        },
+        "price": {
+          "type": "float"
+        },
+        "stock": {
+          "type": "int"
+        }
+      },
+      "relations": {
+        "seller": {
+          "type": "ManyToOne",
+          "entity": "Seller",
+          "required": true
+        }
+      }
+    }

@@ -1,13 +1,13 @@
 {
   "name": "clean-nest-generator",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "NestJS resource file generator",
   "main": "generator.js",
   "bin": {
     "clean-nest-generator": "./cli.js"
   },
   "scripts": {
-    "start": "node generator.js"
+    "start": "node cli.js"
   },
   "keywords": [
     "nestjs",

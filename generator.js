@@ -24,9 +24,118 @@ class NestjsResourceGenerator {
     return pluralize(str);
   }
 
-  // Generate entity file
+  getEntityFileName(name) {
+    // Always singular: product.entity.ts
+    return `${this.getCamelCase(name)}.entity.ts`;
+  }
+
+  getEntityClassName(name) {
+    // Always plural for entity class: Products
+    return this.getPascalCase(this.getPlural(name));
+  }
+
+  getRelationPropertyName(name, type) {
+    // For OneToMany: products
+    // For ManyToOne: seller
+    return type.includes('Many') ?
+      this.getCamelCase(this.getPlural(name)) :
+      this.getCamelCase(name);
+  }
+
+  getInversePropertyName(relationName, entityName, type) {
+    // Return the property name on the inverse side of the relation
+    switch (type) {
+      case 'OneToMany':
+        return this.getCamelCase(entityName); // products -> seller
+      case 'ManyToOne':
+        return this.getCamelCase(this.getPlural(relationName)); // seller -> products
+      case 'OneToOne':
+        return this.getCamelCase(entityName);
+      case 'ManyToMany':
+        return this.getCamelCase(this.getPlural(entityName));
+      default:
+        return '';
+    }
+  }
+
+  // Updated generate relation function
+  generateRelation(relationName, relation, entityName) {
+    const relatedClassName = this.getEntityClassName(relation.entity || relationName);
+    const propertyName = this.getRelationPropertyName(relationName, relation.type);
+
+    switch (relation.type) {
+      case 'OneToMany':
+        return `
+          @OneToMany(() => ${relatedClassName}, (${this.getCamelCase(relationName)}) => ${this.getCamelCase(relationName)}.${this.getCamelCase(entityName)}_id, {
+            onDelete: 'NO ACTION',
+            onUpdate: 'NO ACTION',
+          })
+          ${propertyName}?: ${relatedClassName}[];
+        `;
+
+      case 'ManyToOne':
+        return `
+          @ManyToOne(() => ${relatedClassName}, (${this.getCamelCase(relationName)}) => ${this.getCamelCase(relationName)}.products, {
+            onDelete: 'NO ACTION',
+            onUpdate: 'NO ACTION',
+          })
+          @JoinColumn({ name: '${this.getCamelCase(relationName)}_id' })
+          ${this.getCamelCase(relationName)}_id${relation.required ? "" : "?"}: number;
+          
+          @ManyToOne(() => ${relatedClassName}, (${this.getCamelCase(relationName)}) => ${this.getCamelCase(relationName)}.products, {
+            onDelete: 'NO ACTION',
+            onUpdate: 'NO ACTION',
+          })
+          @JoinColumn({ name: '${this.getCamelCase(relationName)}_id' })
+          ${this.getCamelCase(relationName)}Data${relation.required ? "" : "?"}: ${relatedClassName};
+        `;
+
+      case 'OneToOne':
+        return `
+          @OneToOne(() => ${relatedClassName}, (${this.getCamelCase(relationName)}) => ${this.getCamelCase(relationName)}.${inverseProp}, {
+            onDelete: 'NO ACTION',
+            onUpdate: 'NO ACTION',
+          })
+          @JoinColumn({ name: '${this.getCamelCase(relationName)}_id' })
+          ${propertyName}_id?: number;
+          
+          @OneToOne(() => ${relatedClassName}, (${this.getCamelCase(relationName)}) => ${this.getCamelCase(relationName)}.${inverseProp}, {
+            onDelete: 'NO ACTION',
+            onUpdate: 'NO ACTION',
+          })
+          @JoinColumn({ name: '${this.getCamelCase(relationName)}_id' })
+          ${propertyName}Data?: ${relatedClassName};
+        `;
+
+      case 'ManyToMany':
+        return `
+          @ManyToMany(() => ${relatedClassName}, (${this.getCamelCase(relationName)}) => ${this.getCamelCase(relationName)}.${inverseProp}, {
+            onDelete: 'NO ACTION',
+            onUpdate: 'NO ACTION',
+          })
+          @JoinTable({
+            name: '${this.getCamelCase(entityName)}_${this.getCamelCase(this.getPlural(relationName))}',
+            joinColumn: {
+              name: '${this.getCamelCase(entityName)}_id',
+              referencedColumnName: 'id',
+            },
+            inverseJoinColumn: {
+              name: '${this.getCamelCase(relationName)}_id',
+              referencedColumnName: 'id',
+            },
+          })
+          ${propertyName}?: ${relatedClassName}[];
+        `;
+
+      default:
+        return '';
+    }
+  }
+
+  // Updated generate entity function
   generateEntity(table) {
-    const entityName = this.getPascalCase(this.getPlural(table.name));
+    const entityClassName = this.getEntityClassName(table.name);
+
     const template = `
       import {
         Entity,
@@ -34,11 +143,20 @@ class NestjsResourceGenerator {
         CreateDateColumn,
         UpdateDateColumn,
         Column,
-        ${Object.keys(table.relations).map(rel => rel.type).join(',\n')}
+        OneToOne,
+        OneToMany,
+        ManyToOne,
+        ManyToMany,
+        JoinTable,
+        JoinColumn
       } from 'typeorm';
 
+      ${Object.entries(table.relations).map(([key, rel]) => `
+        import { ${this.getEntityClassName(rel.entity || key)} } from './${this.getEntityFileName(rel.entity || key).replace('.ts', '')}';
+      `).join('\n')}
+
       @Entity('${this.getCamelCase(this.getPlural(table.name))}')
-      export class ${entityName} {
+      export class ${entityClassName} {
         @PrimaryGeneratedColumn({ type: '${this.schema.char_primary_key ? 'uuid' : 'int4'}' })
         id: ${this.schema.char_primary_key ? 'string' : 'number'};
 
@@ -47,7 +165,9 @@ class NestjsResourceGenerator {
           ${key}: ${this.getTypeScriptType(prop.type)};
         `).join('\n')}
 
-        ${Object.entries(table.relations).map(([key, rel]) => this.generateRelation(key, rel)).join('\n')}
+        ${Object.entries(table.relations).map(([key, rel]) =>
+      this.generateRelation(key, rel, table.name)
+    ).join('\n')}
 
         @CreateDateColumn({ type: 'timestamp' })
         created_on: Date;
@@ -73,6 +193,11 @@ class NestjsResourceGenerator {
           @ApiProperty({ required: ${!prop.nullable} })
           ${key}: ${this.getTypeScriptType(prop.type)};
         `).join('\n')}
+        ${Object.entries(table.relations).map(([key, prop]) => prop.type === 'ManyToOne' ? `
+          ${prop.required ? '@IsOptional()' : '@IsNotEmpty()'}
+          @ApiProperty({ required: ${!prop.required} })
+          ${key}_id${prop.required ? "" : "?"}: number;
+        `: "").join('\n')}
       }
 
       export class Update${entityName}Dto {
@@ -81,6 +206,11 @@ class NestjsResourceGenerator {
           @ApiProperty({ required: false })
           ${key}?: ${this.getTypeScriptType(prop.type)};
         `).join('\n')}
+         ${Object.entries(table.relations).map(([key, prop]) => prop.type === 'ManyToOne' ? `
+          ${'@IsOptional()'}
+          @ApiProperty({ required: false })
+          ${key}_id?: number;
+        `: "").join('\n')}
       }
 
       export class Query${entityName}Dto {
@@ -105,7 +235,7 @@ class NestjsResourceGenerator {
   generateRepositoryInterface(table) {
     const entityName = this.getPascalCase(table.name);
     const template = `
-      import { ${entityName}Model, Fetch${entityName}Model, Update${entityName}Model } from 'src/domain/models/${this.getCamelCase(table.name)}';
+      import { ${entityName}Model, Fetch${entityName}Model, Update${entityName}Model } from 'src/domain/models/${this.getCamelCase(table.name)}.model';
       import { PaginatedResponse } from 'src/domain/common/interfaces/paginated-response.interface';
       import { Query${entityName}Dto } from 'src/infrastructure/controllers/${this.getCamelCase(table.name)}/${this.getCamelCase(table.name)}.dto';
 
@@ -115,9 +245,9 @@ class NestjsResourceGenerator {
         get${this.getPlural(entityName)}(query: Query${entityName}Dto): Promise<PaginatedResponse<Fetch${entityName}Model>>;
         update${entityName}(id: ${this.schema.char_primary_key ? 'string' : 'number'}, update${entityName}Model: Update${entityName}Model): Promise<Fetch${entityName}Model>;
         delete${entityName}(id: ${this.schema.char_primary_key ? 'string' : 'number'}): Promise<void>;
-        ${Object.entries(table.relations).map(([key, rel]) => `
+        ${Object.entries(table.relations).map(([key, rel]) => rel.type === 'OneToMany' ? `
           get${this.getPlural(key)}Of${entityName}(id: ${this.schema.char_primary_key ? 'string' : 'number'}): Promise<any[]>;
-        `).join('\n')}
+        ` : '').join('\n')}
       }
     `;
 
@@ -127,21 +257,22 @@ class NestjsResourceGenerator {
   // Generate repository implementation
   generateRepository(table) {
     const entityName = this.getPascalCase(table.name);
+    const pluralEntityName = this.getPlural(entityName);
     const template = `
       import { Injectable, NotFoundException } from '@nestjs/common';
       import { InjectRepository } from '@nestjs/typeorm';
       import { Repository } from 'typeorm';
       import { ${entityName}Model, Fetch${entityName}Model, Update${entityName}Model } from 'src/domain/models/${this.getCamelCase(table.name)}.model';
       import { I${entityName} } from 'src/domain/repositories/${this.getCamelCase(table.name)}.repository.interface';
-      import { ${entityName} } from 'src/infrastructure/entities/${this.getPlural(entityName)}.entity';
+      import { ${(pluralEntityName)} } from 'src/infrastructure/entities/${this.getCamelCase(entityName)}.entity';
       import { PaginatedResponse } from 'src/domain/common/interfaces/paginated-response.interface';
       import { Query${entityName}Dto } from 'src/infrastructure/controllers/${this.getCamelCase(table.name)}/${this.getCamelCase(table.name)}.dto';
 
       @Injectable()
       export class ${entityName}Repository implements I${entityName} {
         constructor(
-          @InjectRepository(${entityName})
-          private ${this.getCamelCase(table.name)}Repository: Repository<${entityName}>,
+          @InjectRepository(${pluralEntityName})
+          private ${this.getCamelCase(table.name)}Repository: Repository<${pluralEntityName}>,
         ) {}
 
         async create${entityName}(${this.getCamelCase(table.name)}Model: ${entityName}Model): Promise<Fetch${entityName}Model> {
@@ -193,7 +324,11 @@ class NestjsResourceGenerator {
           return;
         }
 
-        ${Object.entries(table.relations).map(([key, rel]) => `
+        ${Object.entries(table.relations).map(([key, rel]) => {
+      if (rel.type === 'ManyToOne') {
+        return ``
+      }
+      return `
           async get${this.getPlural(key)}Of${entityName}(id: ${this.schema.char_primary_key ? 'string' : 'number'}): Promise<any[]> {
             const ${this.getCamelCase(table.name)} = await this.${this.getCamelCase(table.name)}Repository.findOne({
               where: { id },
@@ -201,7 +336,8 @@ class NestjsResourceGenerator {
             });
             return ${this.getCamelCase(table.name)}?.${this.getCamelCase(key)} || [];
           }
-        `).join('\n')}
+        `
+    }).join('\n')}
 
         private buildSortObject(sort: string) {
           const order: Record<string, 'ASC' | 'DESC'> = {};
@@ -283,11 +419,11 @@ class NestjsResourceGenerator {
           return await this.${this.getCamelCase(table.name)}Repository.delete${entityName}(id);
         }
 
-        ${Object.entries(table.relations).map(([key, rel]) => `
+        ${Object.entries(table.relations).map(([key, rel]) => rel.type === "OneToMany" ? `
           async get${this.getPlural(key)}Of${entityName}(id: ${this.schema.char_primary_key ? 'string' : 'number'}) {
             return await this.${this.getCamelCase(table.name)}Repository.get${this.getPlural(key)}Of${entityName}(id);
           }
-        `).join('\n')}
+        `: "").join('\n')}
       }
     `;
 
@@ -354,13 +490,13 @@ class NestjsResourceGenerator {
         return this.${this.getCamelCase(table.name)}UseCases.delete${entityName}(id);
       }
 
-      ${Object.entries(table.relations).map(([key, rel]) => `
+      ${Object.entries(table.relations).map(([key, rel]) => rel.type === 'OneToMany' ? `
         @Get(':id/${this.getCamelCase(this.getPlural(key))}')
         @ApiOperation({ summary: 'Get ${this.getPlural(key)} of ${table.name}' })
         get${this.getPlural(key)}Of${entityName}(@Param('id', ParseIntPipe) id: ${this.schema.char_primary_key ? 'string' : 'number'}) {
           return this.${this.getCamelCase(table.name)}UseCases.get${this.getPlural(key)}Of${entityName}(id);
         }
-      `).join('\n')}
+      `: "").join('\n')}
     }
   `;
 
@@ -370,11 +506,20 @@ class NestjsResourceGenerator {
   generateModel(table) {
     const entityName = this.getPascalCase(table.name);
     const template = `
+    ${Object.entries(table.relations).map(([key, rel]) => `
+      import { ${this.getEntityClassName(rel.entity || key)} } from '../../infrastructure/entities/${this.getCamelCase(rel.entity || key)}.entity';
+    `).join('\n')}
+
     // Base model for creating a ${entityName}
     export class ${entityName}Model {
       ${Object.entries(table.properties).map(([key, prop]) => `
-        ${key}: ${this.getTypeScriptType(prop.type)};
-      `).join('\n')}
+        ${key}${prop.nullable ? "?" : ""}: ${this.getTypeScriptType(prop.type)};`).join('')}
+      ${Object.entries(table.relations).map(([key, rel]) => {
+      if (rel.type === 'ManyToOne') {
+        return `${this.getCamelCase(key)}_id: number;`;
+      }
+      return '';
+    }).filter(Boolean).join('\n')}
     }
 
     // Model returned when fetching ${entityName}
@@ -382,16 +527,28 @@ class NestjsResourceGenerator {
       id: ${this.schema.char_primary_key ? 'string' : 'number'};
       created_on: Date;
       updated_on: Date;
-      ${Object.entries(table.relations).map(([key, rel]) => `
-        ${key}?: any${rel.type.includes('Many') ? '[]' : ''};
-      `).join('\n')}
+      ${Object.entries(table.relations).map(([key, rel]) => {
+      if (rel.type === 'ManyToOne') {
+        return `${this.getCamelCase(key)}_id${rel.required === true ? "" : "?"}: number` +
+          `\n${this.getCamelCase(key)}Data${rel.required === true ? "" : "?"}: ${this.getEntityClassName(rel.entity || key)};
+        `;
+      } else if (rel.type === 'OneToMany') {
+        return `${this.getCamelCase(this.getPlural(key))}?: ${this.getEntityClassName(rel.entity || key)}[];`;
+      }
+      return '';
+    }).filter(Boolean).join('')}
     }
 
     // Model for updating ${entityName}
     export class Update${entityName}Model {
       ${Object.entries(table.properties).map(([key, prop]) => `
-        ${key}?: ${this.getTypeScriptType(prop.type)};
-      `).join('\n')}
+        ${key}?: ${this.getTypeScriptType(prop.type)};`).join('')}
+      ${Object.entries(table.relations).map(([key, rel]) => {
+      if (rel.type === 'ManyToOne') {
+        return `${this.getCamelCase(key)}_id?: number;`;
+      }
+      return '';
+    }).filter(Boolean).join('')}
     }
   `;
 
@@ -425,7 +582,14 @@ class NestjsResourceGenerator {
                   type: '${prop.type}',
                   ${prop.nullable ? 'isNullable: true,' : ''}
                 },
-              `).join('\n')}
+              `).join('\n')},
+              ${Object.entries(table.relations).map(([key, prop]) => prop.type === 'ManyToOne' ? `
+                {
+                  name: '${key}',
+                  type: 'number',
+                  ${prop.nullable ? 'isNullable: true,' : ''}
+                },
+              ` : '').join('\n')},
               {
                 name: 'created_on',
                 type: 'timestamptz',
@@ -500,29 +664,45 @@ class NestjsResourceGenerator {
     switch (type) {
       case 'entity':
         // Update db.ts
-        sourceFile.addImportDeclaration({
-          moduleSpecifier: `./${this.getCamelCase(entityName)}.entity`,
-          namedImports: [{ name: this.getPascalCase(this.getPlural(entityName)) }]
-        });
+        // Add import if it doesn't exist
+        if (!sourceFile.getImportDeclaration(
+          (imp) => imp.getModuleSpecifierValue() === `./${this.getCamelCase(entityName)}.entity`
+        )) {
+          sourceFile.addImportDeclaration({
+            moduleSpecifier: `./${this.getCamelCase(entityName)}.entity`,
+            namedImports: [{ name: this.getEntityClassName(entityName) }]
+          });
+        }
 
-        // Add to export array
-        const exportArr = sourceFile.getVariableDeclaration('default');
+        // Update the default export array
+        const exportArr = sourceFile.getFirstDescendant(
+          node => node.isKind(ts.SyntaxKind.ArrayLiteralExpression)
+        );
+
         if (exportArr) {
-          const arrayLiteral = exportArr.getInitializer();
-          if (arrayLiteral) {
-            arrayLiteral.addElement(this.getPascalCase(this.getPlural(entityName)));
+          // Check if the entity is already in the array
+          const elements = exportArr.getElements();
+          const entityExists = elements.some(
+            el => el.getText() === this.getEntityClassName(entityName)
+          );
+
+          if (!entityExists) {
+            exportArr.addElement(this.getEntityClassName(entityName));
           }
         }
         break;
-
       case 'repository':
-        // Update repository.module.ts
-        sourceFile.addImportDeclaration({
-          moduleSpecifier: `./${this.getCamelCase(entityName)}.repository`,
-          namedImports: [{ name: `${this.getPascalCase(entityName)}Repository` }]
-        });
+        // Check if import already exists
+        if (!sourceFile.getImportDeclaration(
+          (imp) => imp.getModuleSpecifierValue() === `./${this.getCamelCase(entityName)}.repository`
+        )) {
+          sourceFile.addImportDeclaration({
+            moduleSpecifier: `./${this.getCamelCase(entityName)}.repository`,
+            namedImports: [{ name: `${this.getPascalCase(entityName)}Repository` }]
+          });
+        }
 
-        // Add to providers and exports arrays
+        // Add to providers and exports arrays if not already present
         const repoModule = sourceFile.getClass('RepositoryModule');
         if (repoModule) {
           const decorator = repoModule.getDecorator('Module');
@@ -535,7 +715,13 @@ class NestjsResourceGenerator {
               if (['providers', 'exports'].includes(propName)) {
                 const initializer = prop.getInitializer();
                 if (initializer.getKind() === ts.SyntaxKind.ArrayLiteralExpression) {
-                  initializer.addElement(`${this.getPascalCase(entityName)}Repository`);
+                  const elements = initializer.getElements();
+                  const elementExists = elements.some(
+                    el => el.getText() === `${this.getPascalCase(entityName)}Repository`
+                  );
+                  if (!elementExists) {
+                    initializer.addElement(`${this.getPascalCase(entityName)}Repository`);
+                  }
                 }
               }
             });
@@ -544,13 +730,15 @@ class NestjsResourceGenerator {
         break;
 
       case 'usecase':
-        // Update usecase.module.ts
-        sourceFile.addImportDeclaration({
-          moduleSpecifier: `./${this.getCamelCase(entityName)}/${this.getCamelCase(entityName)}.usecases`,
-          namedImports: [{ name: `${this.getPascalCase(entityName)}UseCases` }]
-        });
+        if (!sourceFile.getImportDeclaration(
+          (imp) => imp.getModuleSpecifierValue() === `./${this.getCamelCase(entityName)}/${this.getCamelCase(entityName)}.usecases`
+        )) {
+          sourceFile.addImportDeclaration({
+            moduleSpecifier: `./${this.getCamelCase(entityName)}/${this.getCamelCase(entityName)}.usecases`,
+            namedImports: [{ name: `${this.getPascalCase(entityName)}UseCases` }]
+          });
+        }
 
-        // Add to providers and exports arrays
         const usecaseModule = sourceFile.getClass('UseCaseModule');
         if (usecaseModule) {
           const decorator = usecaseModule.getDecorator('Module');
@@ -563,7 +751,13 @@ class NestjsResourceGenerator {
               if (['providers', 'exports'].includes(propName)) {
                 const initializer = prop.getInitializer();
                 if (initializer.getKind() === ts.SyntaxKind.ArrayLiteralExpression) {
-                  initializer.addElement(`${this.getPascalCase(entityName)}UseCases`);
+                  const elements = initializer.getElements();
+                  const elementExists = elements.some(
+                    el => el.getText() === `${this.getPascalCase(entityName)}UseCases`
+                  );
+                  if (!elementExists) {
+                    initializer.addElement(`${this.getPascalCase(entityName)}UseCases`);
+                  }
                 }
               }
             });
@@ -572,13 +766,15 @@ class NestjsResourceGenerator {
         break;
 
       case 'controller':
-        // Update controller.module.ts
-        sourceFile.addImportDeclaration({
-          moduleSpecifier: `./${this.getCamelCase(entityName)}/${this.getCamelCase(entityName)}.controller`,
-          namedImports: [{ name: `${this.getPascalCase(entityName)}Controller` }]
-        });
+        if (!sourceFile.getImportDeclaration(
+          (imp) => imp.getModuleSpecifierValue() === `./${this.getCamelCase(entityName)}/${this.getCamelCase(entityName)}.controller`
+        )) {
+          sourceFile.addImportDeclaration({
+            moduleSpecifier: `./${this.getCamelCase(entityName)}/${this.getCamelCase(entityName)}.controller`,
+            namedImports: [{ name: `${this.getPascalCase(entityName)}Controller` }]
+          });
+        }
 
-        // Add to controllers array
         const controllerModule = sourceFile.getClass('ControllerModule');
         if (controllerModule) {
           const decorator = controllerModule.getDecorator('Module');
@@ -591,7 +787,13 @@ class NestjsResourceGenerator {
               if (propName === 'controllers') {
                 const initializer = prop.getInitializer();
                 if (initializer.getKind() === ts.SyntaxKind.ArrayLiteralExpression) {
-                  initializer.addElement(`${this.getPascalCase(entityName)}Controller`);
+                  const elements = initializer.getElements();
+                  const elementExists = elements.some(
+                    el => el.getText() === `${this.getPascalCase(entityName)}Controller`
+                  );
+                  if (!elementExists) {
+                    initializer.addElement(`${this.getPascalCase(entityName)}Controller`);
+                  }
                 }
               }
             });
@@ -638,7 +840,7 @@ class NestjsResourceGenerator {
         const files = {
           entity: {
             content: await (this.generateEntity(table)),
-            path: path.join(this.schema.url, 'infrastructure/entities', `${this.getCamelCase(table.name)}.entity.ts`)
+            path: path.join(this.schema.url, 'infrastructure/entities', this.getEntityFileName(table.name))
           },
           dto: {
             content: await (this.generateDto(table)),
@@ -665,7 +867,7 @@ class NestjsResourceGenerator {
             path: path.join(this.schema.url, 'infrastructure/migrations', `${Date.now()}-create-${this.getCamelCase(this.getPlural(table.name))}-table.ts`)
           },
           model: {
-            content: await this.formatCode(this.generateModel(table)),
+            content: await (this.generateModel(table)),
             path: path.join(this.schema.url, 'domain/models', `${this.getCamelCase(table.name)}.model.ts`)
           },
         };

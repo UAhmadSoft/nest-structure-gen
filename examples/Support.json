@@ -1,0 +1,31 @@
+{
+  "url": "D:/Projects/NodeJs/stretchUp-Api/src",
+  "char_primary_key": false,
+  "insert_to_modules": true,
+  "entity_module_file": "D:/Projects/NodeJs/stretchUp-Api/src/infrastructure/entities/db.ts",
+  "repository_module_file": "D:/Projects/NodeJs/stretchUp-Api/src/infrastructure/repository/repository.module.ts",
+  "usecase_module_file": "D:/Projects/NodeJs/stretchUp-Api/src/usecases/usecase.module.ts",
+  "controller_module_file": "D:/Projects/NodeJs/stretchUp-Api/src/infrastructure/controllers/controller.module.ts",
+  "tables": [
+    {
+      "name": "Support",
+      "create_pagination_route": true,
+      "create_relation_get_route": true,
+      "properties": {
+        "email": {
+          "type": "varchar"
+        },
+        "first_name": {
+          "type": "varchar"
+        },
+        "last_name": {
+          "type": "varchar"
+        },
+        "message": {
+          "type": "varchar"
+        }
+      },
+      "relations": {}
+    }
+  ]
+}
