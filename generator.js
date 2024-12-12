@@ -367,6 +367,37 @@ class NestjsResourceGenerator {
     return this.formatCode(template);
   }
 
+  generateModel(table) {
+    const entityName = this.getPascalCase(table.name);
+    const template = `
+    // Base model for creating a ${entityName}
+    export class ${entityName}Model {
+      ${Object.entries(table.properties).map(([key, prop]) => `
+        ${key}: ${this.getTypeScriptType(prop.type)};
+      `).join('\n')}
+    }
+
+    // Model returned when fetching ${entityName}
+    export class Fetch${entityName}Model extends ${entityName}Model {
+      id: ${this.schema.char_primary_key ? 'string' : 'number'};
+      created_on: Date;
+      updated_on: Date;
+      ${Object.entries(table.relations).map(([key, rel]) => `
+        ${key}?: any${rel.type.includes('Many') ? '[]' : ''};
+      `).join('\n')}
+    }
+
+    // Model for updating ${entityName}
+    export class Update${entityName}Model {
+      ${Object.entries(table.properties).map(([key, prop]) => `
+        ${key}?: ${this.getTypeScriptType(prop.type)};
+      `).join('\n')}
+    }
+  `;
+
+    return this.formatCode(template);
+  }
+
   // Generate migration
   generateMigration(table) {
     const timestamp = Date.now();
@@ -632,7 +663,11 @@ class NestjsResourceGenerator {
           migration: {
             content: await (this.generateMigration(table)),
             path: path.join(this.schema.url, 'infrastructure/migrations', `${Date.now()}-create-${this.getCamelCase(this.getPlural(table.name))}-table.ts`)
-          }
+          },
+          model: {
+            content: await this.formatCode(this.generateModel(table)),
+            path: path.join(this.schema.url, 'domain/models', `${this.getCamelCase(table.name)}.model.ts`)
+          },
         };
 
         // Write all files
