@@ -131,11 +131,11 @@ class NestjsResourceGenerator {
       import { Injectable, NotFoundException } from '@nestjs/common';
       import { InjectRepository } from '@nestjs/typeorm';
       import { Repository } from 'typeorm';
-      import { ${entityName}Model, Fetch${entityName}Model, Update${entityName}Model } from 'src/domain/models/${this.getCamelCase(table.name)}';
+      import { ${entityName}Model, Fetch${entityName}Model, Update${entityName}Model } from 'src/domain/models/${this.getCamelCase(table.name)}.model';
       import { I${entityName} } from 'src/domain/repositories/${this.getCamelCase(table.name)}.repository.interface';
-      import { ${entityName} } from 'src/infrastructure/entities/${this.getCamelCase(table.name)}.entity';
+      import { ${entityName} } from 'src/infrastructure/entities/${this.getPlural(entityName)}.entity';
       import { PaginatedResponse } from 'src/domain/common/interfaces/paginated-response.interface';
-      import { Query${entityName}Dto } from 'infrastructure/controllers/${this.getCamelCase(table.name)}/${this.getCamelCase(table.name)}.dto';
+      import { Query${entityName}Dto } from 'src/infrastructure/controllers/${this.getCamelCase(table.name)}/${this.getCamelCase(table.name)}.dto';
 
       @Injectable()
       export class ${entityName}Repository implements I${entityName} {
@@ -255,7 +255,7 @@ class NestjsResourceGenerator {
     const entityName = this.getPascalCase(table.name);
     const template = `
       import { Injectable } from '@nestjs/common';
-      import { ${entityName}Model, Update${entityName}Model } from 'src/domain/models/${this.getCamelCase(table.name)}';
+      import { ${entityName}Model, Update${entityName}Model } from 'src/domain/models/${this.getCamelCase(table.name)}.model';
       import { ${entityName}Repository } from 'src/infrastructure/repository/${this.getCamelCase(table.name)}.repository';
       import { Query${entityName}Dto } from 'src/infrastructure/controllers/${this.getCamelCase(table.name)}/${this.getCamelCase(table.name)}.dto';
 
