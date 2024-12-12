@@ -5,7 +5,7 @@ Automatically generate NestJS resource files following clean architecture patter
 ## Installation
 
 ```bash
-npm install -g nestjs-resource-generator
+npm install -g clean-nest-generator
 ```
 
 ## Usage
@@ -55,7 +55,7 @@ npm install -g nestjs-resource-generator
 3. Run the generator in your project directory:
 
 ```bash
-nestjs-resource-generate
+clean-nest-generator
 ```
 
 ## Schema Configuration
