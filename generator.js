@@ -295,12 +295,13 @@ class NestjsResourceGenerator {
           });
 
           return {
-            data,
             meta: {
               total,
               page: Number(page),
               limit: Number(limit),
             },
+            results: data.length,
+            data
           };
         }
 
