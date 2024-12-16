@@ -300,7 +300,6 @@ class NestjsResourceGenerator {
               page: Number(page),
               limit: Number(limit),
             },
-            results: data.length,
             data
           };
         }
