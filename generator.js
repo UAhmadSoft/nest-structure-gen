@@ -75,14 +75,14 @@ class NestjsResourceGenerator {
 
       case 'ManyToOne':
         return `
-          @ManyToOne(() => ${relatedClassName}, (${this.getCamelCase(relationName)}) => ${this.getCamelCase(relationName)}.products, {
+          @ManyToOne(() => ${relatedClassName}, (${this.getCamelCase(relationName)}) => ${this.getCamelCase(relationName)}.${this.getCamelCase(this.getPlural(entityName))}, {
             onDelete: 'NO ACTION',
             onUpdate: 'NO ACTION',
           })
           @JoinColumn({ name: '${this.getCamelCase(relationName)}_id' })
           ${this.getCamelCase(relationName)}_id${relation.required ? "" : "?"}: number;
           
-          @ManyToOne(() => ${relatedClassName}, (${this.getCamelCase(relationName)}) => ${this.getCamelCase(relationName)}.products, {
+          @ManyToOne(() => ${relatedClassName}, (${this.getCamelCase(relationName)}) => ${this.getCamelCase(relationName)}.${this.getCamelCase(this.getPlural(entityName))}, {
             onDelete: 'NO ACTION',
             onUpdate: 'NO ACTION',
           })
@@ -586,10 +586,10 @@ class NestjsResourceGenerator {
               ${Object.entries(table.relations).length > 0 ? Object.entries(table.relations).map(([key, prop]) => prop.type === 'ManyToOne' ? `
                 {
                   name: '${key}',
-                  type: 'number',
+                  type: '${this.schema.char_primary_key ? 'uuid' : 'int4'}',
                   ${prop.nullable ? 'isNullable: true,' : ''}
                 },
-              ` : '').join('\n').concat(",") : ""}
+              ` : '').join('\n') : ""}
               {
                 name: 'created_on',
                 type: 'timestamptz',

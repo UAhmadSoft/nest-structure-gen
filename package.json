@@ -1,6 +1,6 @@
 {
   "name": "clean-nest-generator",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "NestJS resource file generator",
   "main": "generator.js",
   "bin": {

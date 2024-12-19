@@ -1,31 +1,219 @@
 {
-  "url": "D:/Projects/NodeJs/stretchUp-Api/src",
+  "url": "D:/Projects/NodeJs/plantx-api/src",
   "char_primary_key": false,
   "insert_to_modules": true,
-  "entity_module_file": "D:/Projects/NodeJs/stretchUp-Api/src/infrastructure/entities/db.ts",
-  "repository_module_file": "D:/Projects/NodeJs/stretchUp-Api/src/infrastructure/repository/repository.module.ts",
-  "usecase_module_file": "D:/Projects/NodeJs/stretchUp-Api/src/usecases/usecase.module.ts",
-  "controller_module_file": "D:/Projects/NodeJs/stretchUp-Api/src/infrastructure/controllers/controller.module.ts",
+  "entity_module_file": "D:/Projects/NodeJs/plantx-api/src/infrastructure/entities/db.ts",
+  "repository_module_file": "D:/Projects/NodeJs/plantx-api/src/infrastructure/repository/repository.module.ts",
+  "usecase_module_file": "D:/Projects/NodeJs/plantx-api/src/usecases/usecase.module.ts",
+  "controller_module_file": "D:/Projects/NodeJs/plantx-api/src/infrastructure/controllers/controller.module.ts",
   "tables": [
     {
-      "name": "Support",
+      "name": "User",
       "create_pagination_route": true,
       "create_relation_get_route": true,
       "properties": {
+        "username": {
+          "type": "varchar"
+        },
         "email": {
           "type": "varchar"
         },
-        "first_name": {
+        "password": {
           "type": "varchar"
         },
-        "last_name": {
+        "signup_otp": {
+          "type": "varchar",
+          "required": false
+        },
+        "signup_otp_expiry": {
+          "type": "timestamptz",
+          "required": false
+        },
+        "reset_password_otp": {
+          "type": "varchar",
+          "required": false
+        },
+        "reset_password_otp_expiry": {
+          "type": "timestamptz",
+          "required": false
+        },
+        "is_email_verified": {
+          "type": "boolean",
+          "default": false
+        },
+        "img_url": {
+          "type": "varchar",
+          "required": false
+        }
+      },
+      "relations": {
+        "notifications": {
+          "type": "OneToMany",
+          "entity": "Notification",
+          "required": false
+        },
+        "userPlants": {
+          "type": "OneToMany",
+          "entity": "UserPlant",
+          "required": false
+        }
+      }
+    },
+    {
+      "name": "PlantCategory",
+      "create_pagination_route": true,
+      "create_relation_get_route": true,
+      "properties": {
+        "name": {
+          "type": "varchar"
+        },
+        "img_url": {
+          "type": "varchar"
+        }
+      },
+      "relations": {
+        "plants": {
+          "type": "OneToMany",
+          "entity": "Plant",
+          "required": false
+        },
+        "plantCategory": {
+          "type": "ManyToOne",
+          "entity": "PlantCategory",
+          "required": false
+        },
+        "plantCategories": {
+          "type": "OneToMany",
+          "entity": "PlantCategory",
+          "required": false
+        }
+      }
+    },
+    {
+      "name": "Plant",
+      "create_pagination_route": true,
+      "create_relation_get_route": true,
+      "properties": {
+        "name": {
+          "type": "varchar"
+        },
+        "plant_description": {
+          "type": "varchar"
+        },
+        "genus": {
+          "type": "varchar"
+        },
+        "scientific_name": {
+          "type": "varchar"
+        },
+        "temperature": {
+          "type": "int"
+        },
+        "light": {
+          "type": "int"
+        },
+        "img_url": {
+          "type": "varchar"
+        }
+      },
+      "relations": {
+        "plantCategory": {
+          "type": "ManyToOne",
+          "entity": "PlantCategory",
+          "required": true
+        },
+        "userPlants": {
+          "type": "OneToMany",
+          "entity": "UserPlant",
+          "required": false
+        }
+      }
+    },
+    {
+      "name": "UserPlant",
+      "create_pagination_route": true,
+      "create_relation_get_route": true,
+      "properties": {
+        "disease": {
+          "type": "varchar"
+        },
+        "cure": {
+          "type": "varchar"
+        }
+      },
+      "relations": {
+        "user": {
+          "type": "ManyToOne",
+          "entity": "User",
+          "required": true
+        },
+        "plant": {
+          "type": "ManyToOne",
+          "entity": "Plant",
+          "required": true
+        },
+        "reminders": {
+          "type": "OneToMany",
+          "entity": "Reminder",
+          "required": false
+        }
+      }
+    },
+    {
+      "name": "Reminder",
+      "create_pagination_route": true,
+      "create_relation_get_route": true,
+      "properties": {
+        "name": {
+          "type": "varchar"
+        },
+        "repeat": {
+          "type": "varchar"
+        },
+        "time": {
+          "type": "timestamptz"
+        }
+      },
+      "relations": {
+        "userPlant": {
+          "type": "ManyToOne",
+          "entity": "UserPlant",
+          "required": true
+        }
+      }
+    },
+    {
+      "name": "Notification",
+      "create_pagination_route": true,
+      "create_relation_get_route": true,
+      "properties": {
+        "title": {
+          "type": "varchar"
+        },
+        "img": {
           "type": "varchar"
         },
         "message": {
           "type": "varchar"
+        },
+        "resource_name": {
+          "type": "varchar"
+        },
+        "resource_id": {
+          "type": "varchar"
+        },
+        "is_read": {
+          "type": "boolean",
+          "default": false
         }
       },
-      "relations": {}
+      "relations": {
+        "user": {
+          "type": "ManyToOne",
+          "entity": "User",
+          "required": true
+        }
+      }
     }
   ]
 }
