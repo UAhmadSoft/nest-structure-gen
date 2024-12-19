@@ -585,7 +585,7 @@ class NestjsResourceGenerator {
               `).join('\n')}
               ${Object.entries(table.relations).length > 0 ? Object.entries(table.relations).map(([key, prop]) => prop.type === 'ManyToOne' ? `
                 {
-                  name: '${key}',
+                  name: '${key}_id',
                   type: '${this.schema.char_primary_key ? 'uuid' : 'int4'}',
                   ${prop.nullable ? 'isNullable: true,' : ''}
                 },
