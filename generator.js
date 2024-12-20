@@ -62,11 +62,16 @@ class NestjsResourceGenerator {
   generateRelation(relationName, relation, entityName) {
     const relatedClassName = this.getEntityClassName(relation.entity || relationName);
     const propertyName = this.getRelationPropertyName(relationName, relation.type);
+    // New helper function to convert to snake case
+    const toSnakeCase = (str) => {
+      return str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+    };
+
 
     switch (relation.type) {
       case 'OneToMany':
         return `
-          @OneToMany(() => ${relatedClassName}, (${this.getCamelCase(relationName)}) => ${this.getCamelCase(relationName)}.${this.getCamelCase(entityName)}_id, {
+          @OneToMany(() => ${relatedClassName}, (${this.getCamelCase(relationName)}) => ${this.getCamelCase(relationName)}.${toSnakeCase(this.getCamelCase(entityName))}_id, {
             onDelete: 'NO ACTION',
             onUpdate: 'NO ACTION',
           })
@@ -79,14 +84,14 @@ class NestjsResourceGenerator {
             onDelete: 'NO ACTION',
             onUpdate: 'NO ACTION',
           })
-          @JoinColumn({ name: '${this.getCamelCase(relationName)}_id' })
-          ${this.getCamelCase(relationName)}_id${relation.required ? "" : "?"}: number;
+          @JoinColumn({ name: '${toSnakeCase(this.getCamelCase(relationName))}_id' })
+          ${toSnakeCase(this.getCamelCase(relationName))}_id${relation.required ? "" : "?"}: number;
           
           @ManyToOne(() => ${relatedClassName}, (${this.getCamelCase(relationName)}) => ${this.getCamelCase(relationName)}.${this.getCamelCase(this.getPlural(entityName))}, {
             onDelete: 'NO ACTION',
             onUpdate: 'NO ACTION',
           })
-          @JoinColumn({ name: '${this.getCamelCase(relationName)}_id' })
+          @JoinColumn({ name: '${toSnakeCase(this.getCamelCase(relationName))}_id' })
           ${this.getCamelCase(relationName)}Data${relation.required ? "" : "?"}: ${relatedClassName};
         `;
 
@@ -151,9 +156,13 @@ class NestjsResourceGenerator {
         JoinColumn
       } from 'typeorm';
 
-      ${Object.entries(table.relations).map(([key, rel]) => `
-        import { ${this.getEntityClassName(rel.entity || key)} } from './${this.getEntityFileName(rel.entity || key).replace('.ts', '')}';
-      `).join('\n')}
+       ${Object.entries(table.relations).map(([key, rel]) => {
+      // Skip import if it's self-referencing (entity importing itself)
+      if ((rel.entity || key) === table.name) {
+        return '';
+      }
+      return `import { ${this.getEntityClassName(rel.entity || key)} } from './${this.getEntityFileName(rel.entity || key).replace('.ts', '')}';`
+    }).filter(Boolean).join('\n')}
 
       @Entity('${this.getCamelCase(this.getPlural(table.name))}')
       export class ${entityClassName} {
