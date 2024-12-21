@@ -77,7 +77,7 @@
           "entity": "Plant",
           "required": false
         },
-        "plant_category": {
+        "plantCategory": {
           "type": "ManyToOne",
           "entity": "PlantCategory",
           "required": false

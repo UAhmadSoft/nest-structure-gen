@@ -19,8 +19,10 @@
   "author": "your name",
   "license": "MIT",
   "dependencies": {
+    "dagre": "^0.8.5",
     "pluralize": "^8.0.0",
     "prettier": "^2.8.8",
+    "react-hotkeys-hook": "^4.6.1",
     "ts-morph": "^19.0.0",
     "typescript": "^5.0.0"
   },
