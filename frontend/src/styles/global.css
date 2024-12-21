@@ -1,0 +1,146 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Dark theme colors */
+    --background: 0 0% 10%;  /* Dark background */
+    --foreground: 0 0% 100%;  /* White text */
+
+    --card: 0 0% 15%;
+    --card-foreground: 0 0% 100%;
+
+    --popover: 0 0% 15%;
+    --popover-foreground: 0 0% 100%;
+
+    --primary: 214 100% 60%;  /* Bright blue */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 0 0% 20%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 0 0% 20%;
+    --muted-foreground: 0 0% 70%;
+
+    --accent: 214 100% 60%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 100% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 0% 25%;
+    --input: 0 0% 25%;
+    --ring: 214 100% 60%;
+
+    --radius: 0.5rem;
+  }
+}
+
+/* Layout specific styles */
+.erd-area {
+  @apply bg-[#1e1e1e] text-white;
+}
+
+/* Button styles */
+.tools-section button {
+  @apply px-3 py-1.5 text-sm font-medium bg-[#333333] text-white border-[#444444] 
+         rounded-md hover:bg-[#444444] transition-colors duration-200 flex items-center gap-2;
+}
+
+/* Search input */
+.search-input {
+  @apply bg-[#333333] text-white border-[#444444] rounded-md px-3 py-2 
+         placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500;
+}
+
+/* ReactFlow customization */
+.react-flow__handle {
+  @apply w-3 h-3 bg-blue-500 border-2 border-[#1e1e1e];
+}
+
+.react-flow__node {
+  @apply bg-[#333333] border-[#444444] text-white;
+}
+
+.react-flow__controls {
+  @apply bg-[#333333] border-[#444444] !important;
+}
+
+.react-flow__controls button {
+  @apply text-white border-[#444444] hover:bg-[#444444] !important;
+}
+
+/* MiniMap customization */
+.react-flow__minimap {
+  @apply bg-[#333333] border-[#444444] !important;
+}
+
+/* Edge styles */
+.react-flow__edge-path {
+  @apply stroke-[#666666] stroke-2;
+}
+
+/* Controls and elements */
+.top-controls {
+  @apply flex items-center gap-2 mb-4;
+}
+
+.control-button {
+  @apply flex items-center gap-2 px-3 py-1.5 text-sm font-medium bg-[#333333] 
+         text-white border border-[#444444] rounded-md hover:bg-[#444444] 
+         transition-colors duration-200;
+}
+
+/* Table list styles */
+.table-list {
+  @apply bg-[#333333] border-[#444444];
+}
+
+.table-item {
+  @apply px-4 py-2 hover:bg-[#444444] cursor-pointer transition-colors duration-200;
+}
+
+/* Panel styles */
+.properties-panel {
+  @apply bg-[#333333] border-l border-[#444444] text-white;
+}
+
+/* Dialog styles */
+.dialog-content {
+  @apply bg-[#333333] border border-[#444444] text-white;
+}
+
+.dialog-overlay {
+  @apply bg-black/80;
+}
+
+/* Add to your globals.css */
+.react-flow-dark {
+  background-color: #1a1a1a;
+}
+
+.react-flow-dark .react-flow__node {
+  background-color: #2d2d2d;
+  border-color: #404040;
+  color: white;
+}
+
+.react-flow-dark .react-flow__handle {
+  background-color: #3b82f6;
+  border-color: #2d2d2d;
+}
+
+.react-flow-dark .react-flow__edge path {
+  stroke: #666;
+}
+
+.react-flow-dark .react-flow__controls button {
+  background-color: #2d2d2d;
+  border-color: #404040;
+  color: white;
+}
+
+.react-flow-dark .react-flow__minimap {
+  background-color: #2d2d2d;
+}

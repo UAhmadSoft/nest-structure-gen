@@ -44,8 +44,13 @@ export function Tutorial() {
   }, []);
 
   const handleJoyrideCallback = (data) => {
-    const { status, index } = data;
-    setStepIndex(index);
+    console.log('data', data)
+    const { status, index, action } = data;
+    if (action === 'update')
+      setStepIndex(index);
+    else if (action === 'next')
+      setStepIndex(steps.length + 1);
+
 
     if ([STATUS.FINISHED, STATUS.SKIPPED].includes(status)) {
       setRun(false);
@@ -55,7 +60,7 @@ export function Tutorial() {
 
   return (
     <>
-      <Button
+      {/* <Button
         variant="ghost"
         size="icon"
         onClick={() => setRun(true)}
@@ -63,16 +68,23 @@ export function Tutorial() {
         title="Show Tutorial"
       >
         <HelpCircle size={20} />
+      </Button> */}
+      <Button
+        variant="secondary"
+        size="sm"
+        onClick={() => setRun(true)}
+        title="Show Tutorial"
+      >
+        <HelpCircle className="w-4 h-4 mr-2" /> Tutorial
       </Button>
-
       <Joyride
         steps={steps}
         run={run}
         continuous
         showProgress
         showSkipButton
-        callback={handleJoyrideCallback}
-        stepIndex={stepIndex}
+        // callback={handleJoyrideCallback}
+        // stepIndex={stepIndex}
         styles={{
           options: {
             primaryColor: '#3b82f6',

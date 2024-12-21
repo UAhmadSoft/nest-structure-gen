@@ -1,5 +1,5 @@
 // src/pages/ERDBuilder/index.jsx
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import ReactFlow, {
   Background,
   Controls,
@@ -8,7 +8,6 @@ import ReactFlow, {
   useEdgesState
 } from 'reactflow';
 import { TableNode } from '../../components/custom/TableNode';
-import { TableDialog } from '../../components/custom/TableDialog';
 import { ColumnDialog } from '../../components/custom/ColumnDialog';
 import { RelationDialog } from '../../components/custom/RelationDialog';
 import { Button } from '../../components/ui/button';
@@ -17,28 +16,34 @@ import { DeleteConfirmDialog } from '../../components/custom/DeleteConfirmDialog
 import { TableNameEdit } from '../../components/custom/TableNameEdit';
 import { validateSchema } from '../../utils/schemaValidation';
 import { MiniMap } from 'reactflow';
-import { SchemaImport } from '../../components/custom/SchemaImport';
 import { schemaToNodes } from '../../utils/schemaConverter';
 import { ReactFlowProvider, useReactFlow } from 'reactflow';
-import { UndoRedo } from '../../components/custom/UndoRedo';
-import { LayoutControls } from '../../components/custom/LayoutControls';
 import { getLayoutedElements } from '../../utils/layoutUtils';
 import { useHotkeys } from 'react-hotkeys-hook';
-import { SearchBar } from '../../components/custom/SearchBar';
 import { FilterPanel } from '../../components/custom/FilterPanel';
 import { CustomEdge } from '../../components/custom/CustomEdges';
-import { ThemeCustomizer } from '../../components/custom/ThemeCustomizer';
-import { ExportImage } from '../../components/custom/ExportImage';
 import { DEFAULT_THEME } from '../../config/theme';
 import { GroupNode } from '../../components/custom/GroupNode';
 import { GroupDialog } from '../../components/custom/GroupDialog';
 import { storageService } from '../../services/storage';
-import { Tutorial } from '../../components/custom/Tutorial';
-import { ShortcutsGuide } from '../../components/custom/ShortcutsGuide';
 import { useKeyboardShortcuts } from '../../utils/shortcuts';
 import ErrorBoundary from '../../components/custom/ErrorBoundary';
 import { LoadingState } from '../../components/custom/LoadingStates';
 import { ConfigDialog } from '../../components/custom/ConfigDialog';
+import {
+  Clock,
+  Keyboard,
+  Layout,
+  Folder,
+  Upload,
+  Settings,
+  Download,
+  Search
+} from 'lucide-react';
+import { Tutorial } from '../../components/custom/Tutorial';
+import { ShortcutsGuide } from '../../components/custom/ShortcutsGuide';
+import { TableDialog } from '../../components/custom/TableDialog';
+
 const edgeTypes = {
   custom: CustomEdge,
 };
@@ -72,11 +77,40 @@ export function ERDBuilder() {
   const [editingGroup, setEditingGroup] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState('');
+  const isFirstRender = useRef(true);
+
+  // Load data from localStorage when the component mounts
+  useEffect(() => {
+    const savedNodes = localStorage.getItem('nodes');
+    const savedEdges = localStorage.getItem('edges');
+    const savedProjectPath = localStorage.getItem('projectPath');
+
+    if (savedNodes) {
+      setNodes(JSON.parse(savedNodes));
+    }
+    if (savedEdges) {
+      setEdges(JSON.parse(savedEdges));
+    }
+    if (savedProjectPath) {
+      setProjectPath(savedProjectPath);
+    }
+  }, [])
+
+
 
   const onConnect = useCallback(
     (params) => setEdges((eds) => addEdge(params, eds)),
     [setEdges]
   );
+
+  const handleDeleteTable = useCallback(() => {
+    if (selectedTable) {
+      setDeleteConfirm({
+        isOpen: true,
+        data: { type: 'table', id: selectedTable }
+      });
+    }
+  }, [selectedTable]);
 
   const handleAddTable = (table) => {
     const position = { x: Math.random() * 500, y: Math.random() * 500 };
@@ -160,11 +194,6 @@ export function ERDBuilder() {
     URL.revokeObjectURL(url);
   };
 
-  const handleEditColumn = (index, column) => {
-    setEditingColumn({ ...column, index });
-    setIsColumnDialogOpen(true);
-  };
-
   const handleUpdateColumn = (updatedColumn) => {
     if (!selectedTable) return;
 
@@ -187,17 +216,23 @@ export function ERDBuilder() {
     setEditingColumn(null);
   };
 
-  const handleDeleteColumn = (index) => {
+  const handleEditColumn = useCallback((index, column) => {
+    setEditingColumn({ ...column, index });
+    setIsColumnDialogOpen(true);
+  }, []);
+
+  const handleDeleteColumn = useCallback((index) => {
     setDeleteConfirm({
       isOpen: true,
       data: { type: 'column', index }
     });
-  };
+  }, []);
 
   const confirmDelete = () => {
-    if (!selectedTable || !deleteConfirm.data) return;
+    if (!deleteConfirm.data) return;
 
     if (deleteConfirm.data.type === 'column') {
+      if (!selectedTable) return;
       setNodes((nds) =>
         nds.map((node) => {
           if (node.id === selectedTable) {
@@ -214,6 +249,10 @@ export function ERDBuilder() {
           return node;
         })
       );
+    } else if (deleteConfirm.data.type === 'table') {
+      setNodes((nds) => nds.filter((node) => node.id !== deleteConfirm.data.id));
+      setEdges((eds) => eds.filter((edge) => edge.source !== deleteConfirm.data.id && edge.target !== deleteConfirm.data.id));
+      setSelectedTable(null);
     }
 
     setDeleteConfirm({ isOpen: false, data: null });
@@ -311,7 +350,7 @@ export function ERDBuilder() {
     }
   }, {}, [selectedTable]);
 
-  const handleLayout = (direction = 'TB') => {
+  const handleLayout = useCallback((direction = 'TB') => {
     const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
       nodes,
       edges,
@@ -320,7 +359,7 @@ export function ERDBuilder() {
 
     setReactFlowNodes(layoutedNodes);
     setReactFlowEdges(layoutedEdges);
-  };
+  }, [nodes, edges, setReactFlowNodes, setReactFlowEdges]);
 
   // Add to existing hotkeys
   useHotkeys('ctrl+z', (e) => {
@@ -355,6 +394,10 @@ export function ERDBuilder() {
 
   // Save state on changes
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
     storageService.saveState({
       nodes,
       edges,
@@ -402,26 +445,28 @@ export function ERDBuilder() {
     );
   };
 
-  // In ERDBuilder.jsx, update the nodeTypes:
-  const nodeTypes = useMemo(() => ({
-    tableNode: (props) => (
-      <TableNode
-        {...props}
-        theme={theme}
-        onEditColumn={handleEditColumn}
-        onDeleteColumn={handleDeleteColumn}
-        onEditRelation={(index, relation) => {
-          // Add relation editing logic here
-          console.log('Edit relation:', index, relation);
-        }}
-        onDeleteRelation={(index) => {
-          // Add relation deletion logic here
-          console.log('Delete relation:', index);
-        }}
-      />
-    ),
-    group: GroupNode
-  }), [theme, handleEditColumn, handleDeleteColumn]);
+  const nodeTypes = useMemo(
+    () => ({
+      tableNode: (props) => (
+        <TableNode
+          {...props}
+          theme={theme}
+          onEditColumn={handleEditColumn}
+          onDeleteColumn={handleDeleteColumn}
+          onEditRelation={(index, relation) => {
+            // Add relation editing logic here
+            console.log('Edit relation:', index, relation);
+          }}
+          onDeleteRelation={(index) => {
+            // Add relation deletion logic here
+            console.log('Delete relation:', index);
+          }}
+        />
+      ),
+      group: GroupNode,
+    }),
+    [theme, handleEditColumn, handleDeleteColumn]
+  );
 
   // Setup keyboard shortcuts
   const shortcutHandlers = {
@@ -430,11 +475,25 @@ export function ERDBuilder() {
     redo: redo,
     group: () => setIsGroupDialogOpen(true),
     search: () => document.querySelector('.search-input')?.focus(),
-    delete: handleDeleteColumn,
+    // delete: handleDeleteColumn,
+    delete: handleDeleteTable,
     deselect: () => setSelectedTable(null),
   };
 
   useKeyboardShortcuts(shortcutHandlers);
+
+  const handleFileChange = async (event) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      try {
+        const text = await file.text();
+        const schema = JSON.parse(text);
+        handleSchemaImport(schema);
+      } catch (error) {
+        console.error('Error reading schema file:', error);
+      }
+    }
+  };
 
   // Inside ERDBuilder.jsx
   return (
@@ -442,24 +501,53 @@ export function ERDBuilder() {
       <LoadingState loading={isLoading} message={loadingMessage}>
         <div className="flex flex-col h-screen">
           {/* Top Navigation */}
-          <div className="bg-white border-b p-4">
-            <div className="flex justify-between items-center">
+          <div className="bg-white border-b p-4 shadow-sm">
+            <div className="flex justify-between items-center space-x-4">
               <h1 className="text-xl font-bold">NestJS Schema Generator</h1>
-              <div className="flex items-center gap-4 tools-section">
-                <Tutorial />
-                <ShortcutsGuide />
-                <ThemeCustomizer theme={theme} onThemeChange={setTheme} />
-                <ExportImage />
-                <UndoRedo />
-                <LayoutControls onLayout={handleLayout} />
-                <div className="space-x-2 export-section">
-                  <Button onClick={handleAddGroup}>Add Group</Button>
-                  <SchemaImport onImport={handleSchemaImport} />
-                  <Button onClick={() => setIsConfigOpen(true)}>
-                    Configure Project
+              <div className="flex items-center gap-4">
+                {/* Left side buttons */}
+                <div className="flex items-center gap-2 tools-section">
+                  <Tutorial />
+                  <ShortcutsGuide />
+                  {/* <Button variant="secondary" size="sm" onClick={() => setIsTutorialOpen(true)}>
+                    <Clock className="w-4 h-4 mr-2" /> Tutorial
                   </Button>
-                  <Button onClick={handleExport} variant="default">
-                    Export Schema
+                  <Button variant="secondary" size="sm" onClick={() => setIsShortcutsOpen(true)}>
+                    <Keyboard className="w-4 h-4 mr-2" /> Shortcuts
+                  </Button> */}
+                </div>
+
+                {/* Middle section */}
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm" onClick={() => handleLayout('TB')}>
+                    <Layout className="w-4 h-4 mr-2" /> Auto Layout
+                  </Button>
+                </div>
+
+                {/* Right side buttons */}
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm" onClick={handleAddGroup}>
+                    <Folder className="w-4 h-4 mr-2" /> Add Group
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => document.getElementById('schemaInput').click()}
+                  >
+                    <Upload className="w-4 h-4 mr-2" /> Import Schema
+                  </Button>
+                  <input
+                    id="schemaInput"
+                    type="file"
+                    accept=".json"
+                    className="hidden"
+                    onChange={handleFileChange}
+                  />
+                  <Button variant="outline" size="sm" onClick={() => setIsConfigOpen(true)}>
+                    <Settings className="w-4 h-4 mr-2" /> Configure
+                  </Button>
+                  <Button className="export-section" variant="primary" size="sm" onClick={handleExport}>
+                    <Download className="w-4 h-4 mr-2" /> Export Schema
                   </Button>
                 </div>
               </div>
@@ -481,29 +569,40 @@ export function ERDBuilder() {
           {/* Main Content */}
           <div className="flex flex-1">
             {/* Left Sidebar - Table Management */}
-            <div className="w-64 border-r p-4 bg-white table-list">
-              <div className="mb-4">
-                <SearchBar onSearch={setSearchTerm} />
-              </div>
-              <div class name="add-table-btn">
+            <div className="w-64 bg-white border-r p-4">
+              <div className="space-y-4">
+                <div className="relative">
+                  <input
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    type="text"
+                    placeholder="Search tables..."
+                    className="w-full border rounded-md py-2 px-3 pl-9 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
+                </div>
+
                 <TableDialog onAddTable={handleAddTable} />
-              </div>
-              <div className="mt-4">
-                {nodes.map((node) => (
-                  <div
-                    key={node.id}
-                    className={`p-2 cursor-pointer hover:bg-gray-100 rounded ${selectedTable === node.id ? 'bg-blue-50' : ''
-                      }`}
-                    onClick={() => setSelectedTable(node.id)}
-                  >
-                    {node.data.name}
-                  </div>
-                ))}
+
+                <div className="mt-4 space-y-1 table-list">
+                  {nodes.map((node) => (
+                    <div
+                      key={node.id}
+                      className={`p-2 rounded cursor-pointer transition-colors ${selectedTable === node.id
+                        ? 'bg-blue-50 text-blue-700 font-bold'
+                        : 'text-gray-700 hover:bg-gray-50 bg-white'
+                        }`}
+                      onClick={() => setSelectedTable(node.id)}
+                    >
+                      {node.data.name}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
 
             {/* Main ERD Area */}
-            <div className="flex-1 erd-area">
+            <div className="flex-1 bg-gray-50 erd-area">
               <ReactFlow
                 nodes={filteredNodes}
                 edges={filteredEdges}
@@ -512,14 +611,15 @@ export function ERDBuilder() {
                 onConnect={onConnect}
                 nodeTypes={nodeTypes}
                 edgeTypes={edgeTypes}
-                fitView
+                defaultViewport={{
+                  zoom: 0.1,
+                }}
               >
-                <Background />
+                <Background color="#ddd" gap={16} />
                 <Controls />
                 <MiniMap />
               </ReactFlow>
             </div>
-
             {/* Right Sidebar - Properties */}
             {/* Update right sidebar */}
             <div className="w-64 border-l p-4 bg-white properties-panel">
@@ -528,6 +628,7 @@ export function ERDBuilder() {
                   <TableNameEdit
                     name={nodes.find(n => n.id === selectedTable)?.data.name}
                     onEdit={handleTableNameEdit}
+                    onDelete={handleDeleteTable}
                   />
                   <div className="w-64 border-l p-4 bg-white">
                     {selectedTable && (
@@ -558,9 +659,13 @@ export function ERDBuilder() {
                             ?.data.columns.map((column, index) => (
                               <div
                                 key={index}
-                                className="text-sm p-2 bg-gray-50 rounded mb-1"
+                                className="text-sm p-2 bg-gray-50 rounded mb-1 text-dark"
                               >
                                 {column.name} ({column.type})
+                                {column.nullable && <span>, nullable</span>}
+                                {column.defaultValue && <span>, default: {column.defaultValue}</span>}
+                                {column.unsigned && <span>, unsigned</span>}
+                                {column.length && <span>, length: {column.length}</span>}
                               </div>
                             ))}
                         </div>
@@ -595,6 +700,7 @@ export function ERDBuilder() {
           </div>
 
           {/* Dialogs */}
+
           <ColumnDialog
             isOpen={isColumnDialogOpen}
             onClose={() => {
@@ -620,8 +726,12 @@ export function ERDBuilder() {
             isOpen={deleteConfirm.isOpen}
             onClose={() => setDeleteConfirm({ isOpen: false, data: null })}
             onConfirm={confirmDelete}
-            title="Delete Column"
-            description="Are you sure you want to delete this column? This action cannot be undone."
+            title={deleteConfirm.data?.type === 'table' ? 'Delete Table' : 'Delete Column'}
+            description={
+              deleteConfirm.data?.type === 'table'
+                ? 'Are you sure you want to delete this table? This action cannot be undone.'
+                : 'Are you sure you want to delete this column? This action cannot be undone.'
+            }
           />
           <RelationDialog
             isOpen={isRelationDialogOpen}

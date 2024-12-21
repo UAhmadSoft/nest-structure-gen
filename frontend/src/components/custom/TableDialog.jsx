@@ -6,6 +6,7 @@ import { Button } from '../ui/button';
 
 export function TableDialog({ onAddTable }) {
   const [tableName, setTableName] = useState('');
+  const [isOpen, setIsOpen] = useState(false);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -15,13 +16,19 @@ export function TableDialog({ onAddTable }) {
       relations: []
     });
     setTableName('');
+    setIsOpen(false);
   };
 
   return (
-    <Dialog>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button className="w-full">Add Table</Button>
+        <Button
+          className="w-full bg-blue-500 hover:bg-blue-600 text-white add-table-btn"
+        >
+          Add Table
+        </Button>
       </DialogTrigger>
+
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Add New Table</DialogTitle>

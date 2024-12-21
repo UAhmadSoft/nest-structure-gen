@@ -1,10 +1,10 @@
 // src/components/custom/TableNameEdit.jsx
 import { useState } from 'react';
-import { Edit2 } from 'lucide-react';
+import { Edit2, Trash2 } from 'lucide-react';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 
-export function TableNameEdit({ name, onEdit }) {
+export function TableNameEdit({ name, onEdit, onDelete }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedName, setEditedName] = useState(name);
 
@@ -25,6 +25,12 @@ export function TableNameEdit({ name, onEdit }) {
           className="p-1 hover:bg-gray-100 rounded"
         >
           <Edit2 size={14} />
+        </button>
+        <button
+          onClick={onDelete}
+          className="p-1 hover:bg-gray-100 rounded"
+        >
+          <Trash2 size={14} />
         </button>
       </div>
     );

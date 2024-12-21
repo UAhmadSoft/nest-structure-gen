@@ -37,11 +37,12 @@ export function ColumnDialog({ isOpen, onClose, onAddColumn, editingColumn, onEd
     e.preventDefault();
     if (editingColumn) {
       onEditColumn(column);
+      onClose();
+      setColumn({ name: '', type: 'varchar', nullable: false });
     } else {
       onAddColumn(column);
+      setColumn({ name: '', type: 'varchar', nullable: false });
     }
-    setColumn({ name: '', type: 'varchar', nullable: false });
-    onClose();
   };
 
   return (
@@ -92,7 +93,36 @@ export function ColumnDialog({ isOpen, onClose, onAddColumn, editingColumn, onEd
             <label htmlFor="nullable" className="text-sm">Nullable</label>
           </div>
 
-          <Button type="submit">Add Column</Button>
+          <div>
+            <label className="text-sm font-medium">Default Value</label>
+            <Input
+              value={column.default}
+              onChange={(e) => setColumn({ ...column, default: e.target.value })}
+              placeholder="Enter default value"
+            />
+          </div>
+
+          <div>
+            <label className="text-sm font-medium">Length/Set</label>
+            <Input
+              value={column.length}
+              onChange={(e) => setColumn({ ...column, length: e.target.value })}
+              placeholder="Enter length or set"
+            />
+          </div>
+
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="unsigned"
+              checked={column.unsigned}
+              onChange={(e) => setColumn({ ...column, unsigned: e.target.checked })}
+            />
+            <label htmlFor="unsigned" className="text-sm">Unsigned</label>
+          </div>
+
+
+          <Button type="submit">{editingColumn ? 'Update Column' : 'Add Column'}</Button>
         </form>
       </DialogContent>
     </Dialog>

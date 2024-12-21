@@ -24,7 +24,10 @@ export function generateSchema(nodes, projectPath) {
     node.data.columns.forEach(column => {
       table.properties[column.name] = {
         type: column.type,
-        nullable: column.nullable || false
+        nullable: column.nullable || false,
+        default: column.default || null,
+        length: column.length || null,
+        unsigned: column.unsigned || false
       };
     });
 

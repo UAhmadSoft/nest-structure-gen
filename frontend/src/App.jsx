@@ -3,7 +3,7 @@ import { Suspense, lazy } from 'react';
 import { LoadingSpinner } from './components/custom/LoadingStates';
 import ErrorBoundary from './components/custom/ErrorBoundary';
 import { ERDBuilder } from './pages/ERDBuilder';
-
+import './index.css'
 
 function App() {
   return (
