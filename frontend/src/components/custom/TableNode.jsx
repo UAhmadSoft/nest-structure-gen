@@ -20,7 +20,7 @@ export function TableNode({
         color: theme.nodeText
       }}
     >
-      <Handle type="target" position={Position.Left} />
+      <Handle type="target" position={Position.Top} />
 
       <div className="border-b-2 pb-2 mb-2">
         <h3 className="font-bold text-lg">{data.name}</h3>
@@ -108,7 +108,7 @@ export function TableNode({
         ))}
       </div>
 
-      <Handle type="source" position={Position.Right} />
+      <Handle type="source" position={Position.Bottom} />
     </div>
   );
 }

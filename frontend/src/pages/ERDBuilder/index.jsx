@@ -113,6 +113,8 @@ export function ERDBuilder() {
   }, [selectedTable]);
 
   const handleAddTable = (table) => {
+    // if table already exists, return
+    if (nodes.find((node) => node.id === table.name)) return;
     const position = { x: Math.random() * 500, y: Math.random() * 500 };
     const newNode = {
       id: table.name,
@@ -121,6 +123,9 @@ export function ERDBuilder() {
       data: { ...table, columns: [], relations: [] }
     };
     setNodes((nds) => [...nds, newNode]);
+    setTimeout(() => {
+      setSelectedTable(table.name);
+    }, 500);
   };
 
   const handleAddColumn = (column) => {
@@ -227,6 +232,10 @@ export function ERDBuilder() {
       data: { type: 'column', index }
     });
   }, []);
+
+  const handleNodeClick = (event, node) => {
+    setSelectedTable(node.id);
+  };
 
   const confirmDelete = () => {
     if (!deleteConfirm.data) return;
@@ -613,7 +622,10 @@ export function ERDBuilder() {
                 edgeTypes={edgeTypes}
                 defaultViewport={{
                   zoom: 0.1,
+                  x: 200,
+                  y: 200
                 }}
+                onNodeClick={handleNodeClick}
               >
                 <Background color="#ddd" gap={16} />
                 <Controls />
@@ -630,7 +642,7 @@ export function ERDBuilder() {
                     onEdit={handleTableNameEdit}
                     onDelete={handleDeleteTable}
                   />
-                  <div className="w-64 border-l p-4 bg-white">
+                  <div className="w-64 border-l p-4">
                     {selectedTable && (
                       <>
                         <h2 className="text-lg font-bold mb-4">
@@ -663,7 +675,7 @@ export function ERDBuilder() {
                               >
                                 {column.name} ({column.type})
                                 {column.nullable && <span>, nullable</span>}
-                                {column.defaultValue && <span>, default: {column.defaultValue}</span>}
+                                {column.default && <span>, default: {column.default}</span>}
                                 {column.unsigned && <span>, unsigned</span>}
                                 {column.length && <span>, length: {column.length}</span>}
                               </div>
@@ -678,7 +690,7 @@ export function ERDBuilder() {
                             ?.data.relations?.map((relation, index) => (
                               <div
                                 key={index}
-                                className="text-sm p-2 bg-gray-50 rounded mb-1"
+                                className="text-sm p-2 bg-gray-50 rounded mb-1 text-dark"
                               >
                                 {relation.name} ({relation.type})
                               </div>

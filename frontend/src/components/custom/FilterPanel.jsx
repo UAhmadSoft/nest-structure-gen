@@ -10,7 +10,7 @@ const RELATION_TYPES = [
 
 export function FilterPanel({ activeFilters, onFilterChange }) {
   return (
-    <div className="p-4 bg-white rounded-lg shadow">
+    <div className="p-4 rounded-lg shadow">
       <h3 className="font-medium mb-2">Filter Relations</h3>
       <div className="space-y-2">
         {RELATION_TYPES.map((type) => (

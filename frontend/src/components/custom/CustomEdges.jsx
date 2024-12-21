@@ -1,5 +1,5 @@
 // src/components/custom/CustomEdges.jsx
-import { getBezierPath } from 'reactflow';
+import { BaseEdge, getBezierPath } from 'reactflow';
 
 const getEdgeColor = (type) => {
   switch (type) {
@@ -31,7 +31,7 @@ export function CustomEdge({
   const [edgePath] = getBezierPath({
     sourceX,
     sourceY,
-    sourcePosition,
+    sourcePosition: sourcePosition,
     targetX,
     targetY,
     targetPosition,
@@ -55,6 +55,7 @@ export function CustomEdge({
             style={{ fill: color, fontSize: 12 }}
             startOffset="50%"
             textAnchor="middle"
+
           >
             {data.label}
           </textPath>

@@ -19,7 +19,8 @@ export function RelationDialog({ isOpen, onClose, tables, sourceTable, onAddRela
   });
 
   // Filter out source table from options
-  const availableTables = tables.filter(table => table.id !== sourceTable);
+  // const availableTables = tables.filter(table => table.id !== sourceTable);
+  const availableTables = tables;
 
   const handleSubmit = (e) => {
     e.preventDefault();
