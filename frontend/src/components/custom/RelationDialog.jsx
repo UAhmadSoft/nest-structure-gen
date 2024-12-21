@@ -1,5 +1,5 @@
 // src/components/custom/RelationDialog.jsx
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Button } from '../ui/button';
@@ -11,12 +11,21 @@ const RELATION_TYPES = [
   { value: 'ManyToMany', label: 'Many To Many' }
 ];
 
-export function RelationDialog({ isOpen, onClose, tables, sourceTable, onAddRelation }) {
-  const [relation, setRelation] = useState({
-    type: 'OneToMany',
-    targetTable: '',
-    required: false
-  });
+export function RelationDialog({ isOpen, onClose, tables, sourceTable, onAddRelation, currentRelation }) {
+  const [relation, setRelation] = useState(
+    { type: 'OneToMany', targetTable: '', required: false }
+  );
+
+  useEffect(() => {
+    console.log('currentRelation', currentRelation)
+    if (currentRelation) {
+      setRelation({
+        type: currentRelation.type,
+        targetTable: currentRelation.targetTable,
+        required: currentRelation.required
+      });
+    }
+  }, [currentRelation]);
 
   // Filter out source table from options
   // const availableTables = tables.filter(table => table.id !== sourceTable);
@@ -27,6 +36,7 @@ export function RelationDialog({ isOpen, onClose, tables, sourceTable, onAddRela
     onAddRelation({
       ...relation,
       sourceTable,
+      id: currentRelation ? currentRelation.id : undefined
     });
     setRelation({ type: 'OneToMany', targetTable: '', required: false });
     onClose();
@@ -36,7 +46,7 @@ export function RelationDialog({ isOpen, onClose, tables, sourceTable, onAddRela
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add New Relation</DialogTitle>
+          <DialogTitle>{currentRelation ? 'Edit Relation' : 'Add Relation'}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>

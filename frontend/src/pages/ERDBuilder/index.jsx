@@ -63,6 +63,7 @@ export function ERDBuilder() {
   const [selectedTable, setSelectedTable] = useState(null);
   const [isColumnDialogOpen, setIsColumnDialogOpen] = useState(false);
   const [isRelationDialogOpen, setIsRelationDialogOpen] = useState(false);
+  const [editingRelation, setEditingRelation] = useState();
   const [projectPath, setProjectPath] = useState('');
   const [isConfigOpen, setIsConfigOpen] = useState(false);
   const [editingColumn, setEditingColumn] = useState(null);
@@ -149,6 +150,52 @@ export function ERDBuilder() {
 
   const handleAddRelation = (relation) => {
     // Add relation to source table
+    // If relation already exists, update it
+    console.log('relation23', relation)
+    const alreadyRelation = nodes.find((node) =>
+      node.data.relations?.find((rel) => rel.id === relation.id)
+    );
+    console.log('alreadyRelation', alreadyRelation)
+    if (alreadyRelation) {
+      setNodes((nds) =>
+        nds.map((node) => {
+          return {
+            ...node,
+            data: {
+              ...node.data,
+              relations: node.data.relations.map((rel) => {
+                console.log('rel.id', rel.id)
+                console.log('relation.id', relation.id)
+                if (rel.id === relation.id) {
+                  return relation;
+                }
+                return rel;
+              })
+            }
+          }
+        }
+        ));
+
+      // Update edge with custom styling
+      setEdges((eds) =>
+        eds.map((edge) => {
+          if (edge.id === relation.id) {
+            return {
+              ...edge,
+              data: {
+                relationType: relation.type,
+                label: relation.type
+              }
+            };
+          }
+          return edge;
+        })
+      );
+
+      setEditingRelation(undefined)
+      return;
+    }
+
     setNodes((nds) =>
       nds.map((node) => {
         if (node.id === relation.sourceTable) {
@@ -161,7 +208,8 @@ export function ERDBuilder() {
                 {
                   name: relation.targetTable,
                   type: relation.type,
-                  required: relation.required
+                  required: relation.required,
+                  id: `${relation.sourceTable}-${relation.targetTable}` // Unique ID for relation
                 }
               ]
             }
@@ -262,7 +310,21 @@ export function ERDBuilder() {
       setNodes((nds) => nds.filter((node) => node.id !== deleteConfirm.data.id));
       setEdges((eds) => eds.filter((edge) => edge.source !== deleteConfirm.data.id && edge.target !== deleteConfirm.data.id));
       setSelectedTable(null);
+    } else if (deleteConfirm.data.type === 'relation') {
+      setNodes((nds) =>
+        nds.map((node) => {
+          return {
+            ...node,
+            data: {
+              ...node.data,
+              relations: node.data.relations.filter((rel) => rel.id !== deleteConfirm.data.relation)
+            }
+          };
+        })
+      );
+      setEdges((eds) => eds.filter((edge) => edge.id !== deleteConfirm.data.relation.id));
     }
+
 
     setDeleteConfirm({ isOpen: false, data: null });
   };
@@ -462,13 +524,22 @@ export function ERDBuilder() {
           theme={theme}
           onEditColumn={handleEditColumn}
           onDeleteColumn={handleDeleteColumn}
-          onEditRelation={(index, relation) => {
+          onEditRelation={(relation) => {
             // Add relation editing logic here
-            console.log('Edit relation:', index, relation);
+            console.log('relation', relation)
+            setEditingRelation(relation);
+            setTimeout(() => {
+              setIsRelationDialogOpen(true);
+            }, 500);
+            console.log('Edit relation:', relation);
           }}
-          onDeleteRelation={(index) => {
+          onDeleteRelation={(relation) => {
             // Add relation deletion logic here
-            console.log('Delete relation:', index);
+            console.log('de')
+            setDeleteConfirm({
+              isOpen: true,
+              data: { type: 'relation', relation }
+            })
           }}
         />
       ),
@@ -594,18 +665,28 @@ export function ERDBuilder() {
                 <TableDialog onAddTable={handleAddTable} />
 
                 <div className="mt-4 space-y-1 table-list">
-                  {nodes.map((node) => (
+                  {nodes.map((node, index) => (
                     <div
                       key={node.id}
-                      className={`p-2 rounded cursor-pointer transition-colors ${selectedTable === node.id
-                        ? 'bg-blue-50 text-blue-700 font-bold'
-                        : 'text-gray-700 hover:bg-gray-50 bg-white'
-                        }`}
+                      // className={`p-2 rounded cursor-pointer transition-colors ${selectedTable === node.id
+                      //   ? 'bg-blue-50 text-blue-700 font-bold'
+                      //   : 'text-gray-700 hover:bg-gray-50 bg-white'
+                      //   }`}
+                      className={`
+          p-2 rounded cursor-pointer transition-colors text-gray-700
+          ${selectedTable === node.id
+                          ? 'bg-blue-100 text-blue-700 font-bold'
+                          : index % 2 === 0
+                            ? 'bg-green-100 hover:bg-gray-100'
+                            : 'bg-slate-100 hover:bg-gray-50'
+                        }
+        `}
                       onClick={() => setSelectedTable(node.id)}
                     >
                       {node.data.name}
                     </div>
                   ))}
+
                 </div>
               </div>
             </div>
@@ -682,6 +763,7 @@ export function ERDBuilder() {
                             ))}
                         </div>
 
+
                         {/* Show relations */}
                         <div className="mt-4">
                           <h3 className="font-medium mb-2">Relations</h3>
@@ -738,11 +820,9 @@ export function ERDBuilder() {
             isOpen={deleteConfirm.isOpen}
             onClose={() => setDeleteConfirm({ isOpen: false, data: null })}
             onConfirm={confirmDelete}
-            title={deleteConfirm.data?.type === 'table' ? 'Delete Table' : 'Delete Column'}
+            title={deleteConfirm.data?.type.slice(0, 1).toUpperCase() + deleteConfirm.data?.type.slice(1) + ' Delete'}
             description={
-              deleteConfirm.data?.type === 'table'
-                ? 'Are you sure you want to delete this table? This action cannot be undone.'
-                : 'Are you sure you want to delete this column? This action cannot be undone.'
+              `Are you sure you want to delete this ${deleteConfirm.data?.type}? This action cannot be undone.`
             }
           />
           <RelationDialog
@@ -751,6 +831,7 @@ export function ERDBuilder() {
             tables={nodes}
             sourceTable={selectedTable}
             onAddRelation={handleAddRelation}
+            currentRelation={editingRelation}
           />
           <ConfigDialog
             isOpen={isConfigOpen}

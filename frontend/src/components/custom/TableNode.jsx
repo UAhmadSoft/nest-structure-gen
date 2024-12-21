@@ -86,20 +86,23 @@ export function TableNode({
             </div>
             <div className="hidden group-hover:flex items-center gap-1">
               <button
+                onMouseDown={event => event.stopPropagation()}
                 onClick={(e) => {
                   e.stopPropagation();
-                  onEditRelation(index, relation);
+                  console.log('relation1', relation)
+                  onEditRelation(relation);
                 }}
-                className="p-1 hover:bg-gray-100 rounded"
+                className="p-1 nodrag hover:bg-gray-100 rounded"
               >
                 <Edit2 size={14} />
               </button>
               <button
+                onMouseDown={event => event.stopPropagation()}
                 onClick={(e) => {
                   e.stopPropagation();
-                  onDeleteRelation(index);
+                  onDeleteRelation(relation.id);
                 }}
-                className="p-1 hover:bg-gray-100 rounded text-red-500"
+                className="p-1 nodrag hover:bg-gray-100 rounded text-red-500"
               >
                 <Trash2 size={14} />
               </button>
