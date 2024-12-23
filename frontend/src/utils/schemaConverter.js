@@ -32,10 +32,16 @@ export function schemaToNodes(schema) {
         source: table.name,
         target: rel.entity,
         label: rel.type,
-        type: 'smoothstep',
-        animated: true
+        type: 'custom',
+        animated: true,
+        data: {
+          relationType: rel.type,
+          label: rel.type
+        },
       });
     });
+
+
   });
 
   return { nodes, edges };

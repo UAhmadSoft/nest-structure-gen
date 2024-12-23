@@ -43,7 +43,7 @@ import {
 import { Tutorial } from '../../components/custom/Tutorial';
 import { ShortcutsGuide } from '../../components/custom/ShortcutsGuide';
 import { TableDialog } from '../../components/custom/TableDialog';
-
+import { generateSchema } from '../../utils/schemaGenerator';
 const edgeTypes = {
   custom: CustomEdge,
 };

@@ -37,7 +37,7 @@ export function TableNameEdit({ name, onEdit, onDelete }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex items-center gap-2">
+    <form onSubmit={handleSubmit} className="flex items-center gap-2 text-dark">
       <Input
         value={editedName}
         onChange={(e) => setEditedName(e.target.value)}

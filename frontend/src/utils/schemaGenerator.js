@@ -1,3 +1,28 @@
+
+const toSnakeCase = (string) => {
+  let str = string.replace(/([A-Z])/g, (match) => `_${match.toLowerCase()}`)
+  return str.startsWith('_') ? str.slice(1) : str;
+};
+
+const toCamelCase = (string) => {
+  return string.replace(/([-_][a-z])/ig, (match) => match.toUpperCase().replace('-', '').replace('_', ''));
+}
+
+const toPascalCase = (string) => {
+  return string.replace(/(\w)(\w*)/g, (g0, g1, g2) => g1.toUpperCase() + g2.toLowerCase());
+}
+
+const toSingle = (string) => {
+  return string.endsWith('ies') ? (string.slice(0, -3) + 'y') :
+    string.endsWith('s') ? (string.slice(0, -1)) :
+      (string);
+}
+
+const toPlural = (string) => {
+  return string.endsWith('s') ? (string) :
+    string.endsWith('y') ? (string.slice(0, -1) + 'ies') :
+      (string + 's');
+}
 // src/utils/schemaGenerator.js
 export function generateSchema(nodes, projectPath) {
   const schema = {
@@ -33,9 +58,27 @@ export function generateSchema(nodes, projectPath) {
 
     // Add relations
     node.data.relations?.forEach(relation => {
-      table.relations[relation.name] = {
+      let key = '';
+      switch (relation.type) {
+        case 'OneToMany':
+          key = toPlural(toSnakeCase(relation.name)).toLowerCase();
+          break;
+
+        case 'ManyToOne':
+          key = toSnakeCase(relation.name) + '_id';
+          break;
+
+        case 'OneToOne':
+          key = toSnakeCase(relation.name) + '_id';
+          break;
+
+        default:
+          break;
+      }
+      let name = nodes.find(n => n.id === relation.name)?.data.name
+      table.relations[key] = {
         type: relation.type,
-        entity: nodes.find(n => n.id === relation.name)?.data.name,
+        entity: toCamelCase(toSingle(name)),
         required: relation.required || false
       };
     });
