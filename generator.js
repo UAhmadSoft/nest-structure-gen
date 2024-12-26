@@ -13,16 +13,21 @@ class NestjsResourceGenerator {
 
   // Utility functions for naming conventions
   getPascalCase(str) {
-    return str.charAt(0).toUpperCase() + str.slice(1);
+    return str.replace(/(\w)(\w*)/g, (g0, g1, g2) => g1.toUpperCase() + g2.toLowerCase());
   }
 
   getCamelCase(str) {
-    return str.charAt(0).toLowerCase() + str.slice(1);
+    return str.replace(/([-_][a-z])/ig, (match) => match.toUpperCase().replace('-', '').replace('_', ''));
   }
 
   getPlural(str) {
     return pluralize(str);
   }
+
+  toSnakeCase(string) {
+    let str = string.replace(/([A-Z])/g, (match) => `_${match.toLowerCase()}`)
+    return str.startsWith('_') ? str.slice(1) : str;
+  };
 
   getEntityFileName(name) {
     // Always singular: product.entity.ts
@@ -50,7 +55,7 @@ class NestjsResourceGenerator {
       case 'ManyToOne':
         return this.getCamelCase(this.getPlural(relationName)); // seller -> products
       case 'OneToOne':
-        return this.getCamelCase(entityName);
+        return this.toSnakeCase(entityName) + "_id";
       case 'ManyToMany':
         return this.getCamelCase(this.getPlural(entityName));
       default:
@@ -64,7 +69,8 @@ class NestjsResourceGenerator {
     const propertyName = this.getRelationPropertyName(relationName, relation.type);
     // New helper function to convert to snake case
     const toSnakeCase = (str) => {
-      return str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+      let ttteads = str.replace(/([A-Z])/g, (match) => `_${match.toLowerCase()}`)
+      return ttteads.startsWith('_') ? ttteads.slice(1) : ttteads;
     };
 
 
@@ -75,46 +81,46 @@ class NestjsResourceGenerator {
             onDelete: 'NO ACTION',
             onUpdate: 'NO ACTION',
           })
-          ${propertyName}?: ${relatedClassName}[];
+          ${toSnakeCase(propertyName)}?: ${relatedClassName}[];
         `;
 
       case 'ManyToOne':
         return `
-          @ManyToOne(() => ${relatedClassName}, (${this.getCamelCase(relationName)}) => ${this.getCamelCase(relationName)}.${this.getCamelCase(this.getPlural(entityName))}, {
+          @ManyToOne(() => ${relatedClassName}, (${this.getCamelCase(relationName)}) => ${this.getCamelCase(relationName)}.${this.getCamelCase(this.getPlural(entityName).toLowerCase())}, {
             onDelete: 'NO ACTION',
             onUpdate: 'NO ACTION',
           })
-          @JoinColumn({ name: '${toSnakeCase(this.getCamelCase(relationName))}_id' })
-          ${toSnakeCase(this.getCamelCase(relationName))}_id${relation.required ? "" : "?"}: number;
+          @JoinColumn({ name: '${toSnakeCase(this.getCamelCase(relationName))}' })
+          ${toSnakeCase(this.getCamelCase(relationName))}${relation.required ? "" : "?"}: number;
           
-          @ManyToOne(() => ${relatedClassName}, (${this.getCamelCase(relationName)}) => ${this.getCamelCase(relationName)}.${this.getCamelCase(this.getPlural(entityName))}, {
+          @ManyToOne(() => ${relatedClassName}, (${this.getCamelCase(relationName)}) => ${this.getCamelCase(relationName)}.${this.getCamelCase(this.getPlural(entityName).toLowerCase())}, {
             onDelete: 'NO ACTION',
             onUpdate: 'NO ACTION',
           })
           @JoinColumn({ name: '${toSnakeCase(this.getCamelCase(relationName))}_id' })
-          ${this.getCamelCase(relationName)}Data${relation.required ? "" : "?"}: ${relatedClassName};
+          ${this.getCamelCase(relationName).replace("_id", "Data")}${relation.required ? "" : "?"}: ${relatedClassName};
         `;
 
       case 'OneToOne':
         return `
-          @OneToOne(() => ${relatedClassName}, (${this.getCamelCase(relationName)}) => ${this.getCamelCase(relationName)}.${inverseProp}, {
+          @OneToOne(() => ${relatedClassName}, (${this.getCamelCase(relationName)}) => ${this.getCamelCase(relationName)}.${this.getInversePropertyName(relationName, entityName, relation.type)}, {
             onDelete: 'NO ACTION',
             onUpdate: 'NO ACTION',
           })
-          @JoinColumn({ name: '${this.getCamelCase(relationName)}_id' })
-          ${propertyName}_id?: number;
+          @JoinColumn({ name: '${this.getCamelCase(relationName)}' })
+          ${this.toSnakeCase(propertyName)}?: number;
           
-          @OneToOne(() => ${relatedClassName}, (${this.getCamelCase(relationName)}) => ${this.getCamelCase(relationName)}.${inverseProp}, {
+          @OneToOne(() => ${relatedClassName}, (${this.getCamelCase(relationName)}) => ${this.getCamelCase(relationName)}.${this.getInversePropertyName(relationName, entityName, relation.type)}, {
             onDelete: 'NO ACTION',
             onUpdate: 'NO ACTION',
           })
-          @JoinColumn({ name: '${this.getCamelCase(relationName)}_id' })
-          ${propertyName}Data?: ${relatedClassName};
+          @JoinColumn({ name: '${this.getCamelCase(relationName)}' })
+          ${this.toSnakeCase(propertyName).replace("_id", "Data")}?: ${relatedClassName};
         `;
 
       case 'ManyToMany':
         return `
-          @ManyToMany(() => ${relatedClassName}, (${this.getCamelCase(relationName)}) => ${this.getCamelCase(relationName)}.${inverseProp}, {
+          @ManyToMany(() => ${relatedClassName}, (${this.getCamelCase(relationName)}) => ${this.getCamelCase(relationName)}.${this.getInversePropertyName(relationName, entityName, relation.type)}, {
             onDelete: 'NO ACTION',
             onUpdate: 'NO ACTION',
           })
@@ -255,9 +261,10 @@ class NestjsResourceGenerator {
         update${entityName}(id: ${this.schema.char_primary_key ? 'string' : 'number'}, update${entityName}Model: Update${entityName}Model): Promise<Fetch${entityName}Model>;
         delete${entityName}(id: ${this.schema.char_primary_key ? 'string' : 'number'}): Promise<void>;
         ${Object.entries(table.relations).map(([key, rel]) => rel.type === 'OneToMany' ? `
-          get${this.getPlural(key)}Of${entityName}(id: ${this.schema.char_primary_key ? 'string' : 'number'}): Promise<any[]>;
+          get${this.getCamelCase(this.getPlural(key.replace("_id", "")))}Of${entityName}(id: ${this.schema.char_primary_key ? 'string' : 'number'}): Promise<any[]>;
         ` : '').join('\n')}
       }
+        
     `;
 
     return this.formatCode(template);
@@ -337,15 +344,16 @@ class NestjsResourceGenerator {
       if (rel.type === 'ManyToOne') {
         return ``
       }
-      return `
-          async get${this.getPlural(key)}Of${entityName}(id: ${this.schema.char_primary_key ? 'string' : 'number'}): Promise<any[]> {
-            const ${this.getCamelCase(table.name)} = await this.${this.getCamelCase(table.name)}Repository.findOne({
-              where: { id },
-              relations: ['${this.getCamelCase(key)}'],
-            });
-            return ${this.getCamelCase(table.name)}?.${this.getCamelCase(key)} || [];
-          }
-        `
+      else if (rel.type === 'OneToMany')
+        return `
+              async get${this.getCamelCase(this.getPlural(key.replace("_id", "")))}Of${entityName}(id: ${this.schema.char_primary_key ? 'string' : 'number'}): Promise<any[]> {
+                const ${this.getCamelCase(table.name)} = await this.${this.getCamelCase(table.name)}Repository.findOne({
+                  where: { id },
+                  relations: ['${this.toSnakeCase(key)}'],
+                });
+                return ${this.getCamelCase(table.name)}?.${this.toSnakeCase(key)} || [];
+              }
+            `
     }).join('\n')}
 
         private buildSortObject(sort: string) {
@@ -429,8 +437,8 @@ class NestjsResourceGenerator {
         }
 
         ${Object.entries(table.relations).map(([key, rel]) => rel.type === "OneToMany" ? `
-          async get${this.getPlural(key)}Of${entityName}(id: ${this.schema.char_primary_key ? 'string' : 'number'}) {
-            return await this.${this.getCamelCase(table.name)}Repository.get${this.getPlural(key)}Of${entityName}(id);
+          async get${this.getCamelCase(this.getPlural(key.replace("_id", "")))}Of${entityName}(id: ${this.schema.char_primary_key ? 'string' : 'number'}) {
+            return await this.${this.getCamelCase(table.name)}Repository.get${this.getCamelCase(this.getPlural(key.replace("_id", "")))}Of${entityName}(id);
           }
         `: "").join('\n')}
       }
@@ -502,8 +510,8 @@ class NestjsResourceGenerator {
       ${Object.entries(table.relations).map(([key, rel]) => rel.type === 'OneToMany' ? `
         @Get(':id/${this.getCamelCase(this.getPlural(key))}')
         @ApiOperation({ summary: 'Get ${this.getPlural(key)} of ${table.name}' })
-        get${this.getPlural(key)}Of${entityName}(@Param('id', ParseIntPipe) id: ${this.schema.char_primary_key ? 'string' : 'number'}) {
-          return this.${this.getCamelCase(table.name)}UseCases.get${this.getPlural(key)}Of${entityName}(id);
+        get${this.getCamelCase(this.getPlural(key.replace("_id", "")))}Of${entityName}(@Param('id', ParseIntPipe) id: ${this.schema.char_primary_key ? 'string' : 'number'}) {
+          return this.${this.getCamelCase(table.name)}UseCases.get${this.getCamelCase(this.getPlural(key.replace("_id", "")))}Of${entityName}(id);
         }
       `: "").join('\n')}
     }
@@ -525,7 +533,7 @@ class NestjsResourceGenerator {
         ${key}${prop.nullable ? "?" : ""}: ${this.getTypeScriptType(prop.type)};`).join('')}
       ${Object.entries(table.relations).map(([key, rel]) => {
       if (rel.type === 'ManyToOne') {
-        return `${this.getCamelCase(key)}_id: number;`;
+        return `${this.toSnakeCase(key)}: number;`;
       }
       return '';
     }).filter(Boolean).join('\n')}
@@ -538,8 +546,8 @@ class NestjsResourceGenerator {
       updated_on: Date;
       ${Object.entries(table.relations).map(([key, rel]) => {
       if (rel.type === 'ManyToOne') {
-        return `${this.getCamelCase(key)}_id${rel.required === true ? "" : "?"}: number` +
-          `\n${this.getCamelCase(key)}Data${rel.required === true ? "" : "?"}: ${this.getEntityClassName(rel.entity || key)};
+        return `${this.toSnakeCase(key)}${rel.required === true ? "" : "?"}: number` +
+          `\n${this.toSnakeCase(key).replace("_id", "Data")}${rel.required === true ? "" : "?"}: ${this.getEntityClassName(rel.entity || key)};
         `;
       } else if (rel.type === 'OneToMany') {
         return `${this.getCamelCase(this.getPlural(key))}?: ${this.getEntityClassName(rel.entity || key)}[];`;
@@ -554,7 +562,7 @@ class NestjsResourceGenerator {
         ${key}?: ${this.getTypeScriptType(prop.type)};`).join('')}
       ${Object.entries(table.relations).map(([key, rel]) => {
       if (rel.type === 'ManyToOne') {
-        return `${this.getCamelCase(key)}_id?: number;`;
+        return `${this.toSnakeCase(key)}?: number;`;
       }
       return '';
     }).filter(Boolean).join('')}

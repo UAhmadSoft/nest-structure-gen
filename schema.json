@@ -435,7 +435,7 @@
       }
     },
     {
-      "name": "Video Session",
+      "name": "VideoSession",
       "create_pagination_route": true,
       "create_relation_get_route": true,
       "properties": {
@@ -495,9 +495,9 @@
         }
       },
       "relations": {
-        "video _session_id": {
+        "video_session_id": {
           "type": "ManyToOne",
-          "entity": "Video Session",
+          "entity": "VideoSession",
           "required": true
         }
       }
