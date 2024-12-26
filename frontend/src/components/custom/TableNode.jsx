@@ -9,11 +9,12 @@ export function TableNode({
   onDeleteColumn,
   onEditRelation,
   onDeleteRelation,
-  theme = DEFAULT_THEME
+  theme = DEFAULT_THEME,
+  selectedTable
 }) {
   return (
     <div
-      className="border rounded-lg shadow-lg p-4 min-w-[250px]"
+      className="border rounded-lg shadow-lg min-w-[250px]"
       style={{
         background: theme.nodeBg,
         border: `1px solid ${theme.nodeBorder}`,
@@ -22,11 +23,15 @@ export function TableNode({
     >
       <Handle type="target" position={Position.Top} />
 
-      <div className="border-b-2 pb-2 mb-2">
+      <div className="border-b-2 pb-2 mb-2 pt-2" style={{
+        backgroundColor: selectedTable === data.name ? '#3b82f6' : 'transparent',
+        color: selectedTable === data.name ? '#fff' : '#000',
+        textAlign: 'center'
+      }}>
         <h3 className="font-bold text-lg">{data.name}</h3>
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-2 p-4">
         {/* Primary Key */}
         <div className="flex items-center justify-between text-sm">
           <span className="font-semibold">id</span>

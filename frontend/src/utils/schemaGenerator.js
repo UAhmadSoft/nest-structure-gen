@@ -38,7 +38,7 @@ export function generateSchema(nodes, projectPath) {
 
   nodes.forEach(node => {
     const table = {
-      name: node.data.name,
+      name: toSingle(node.data.name),
       create_pagination_route: true,
       create_relation_get_route: true,
       properties: {},
@@ -72,19 +72,90 @@ export function generateSchema(nodes, projectPath) {
           key = toSnakeCase(relation.name) + '_id';
           break;
 
+        case 'ManyToMany':
+          key = undefined;
+
         default:
           break;
       }
-      let name = nodes.find(n => n.id === relation.name)?.data.name
-      table.relations[key] = {
-        type: relation.type,
-        entity: toCamelCase(toSingle(name)),
-        required: relation.required || false
-      };
+      if (key) {
+        let name = nodes.find(n => n.id === relation.name)?.data.name
+        table.relations[key] = {
+          type: relation.type,
+          entity: toCamelCase(toSingle(name)),
+          required: relation.required || false
+        };
+      }
     });
 
     schema.tables.push(table);
-  });
+    const manyToManyRelations = nodes.filter(n => n.data.relations?.some(r => r.name === node.data.name && r.type === 'ManyToMany'));
+
+    manyToManyRelations.forEach(relation => {
+      // create a new table for many to many relation
+      const table1 = toSnakeCase(node.data.name);
+      const table2 = toSnakeCase(relation.data.name);
+
+      const tableName = `${table1}_${table2}`;
+      const table1Name = toCamelCase(toSingle(node.data.name));
+      const table2Name = toCamelCase(toSingle(relation.data.name));
+
+      const table1Key = `${table1Name}_id`;
+      const table2Key = `${table2Name}_id`;
+
+      schema.tables.push({
+        name: tableName,
+        create_pagination_route: true,
+        create_relation_get_route: true,
+        properties: {},
+        relations: {
+          [toSnakeCase(table1Key)]: {
+            type: 'ManyToOne',
+            entity: table1Name,
+            required: true
+          },
+          [toSnakeCase(table2Key)]: {
+            type: 'ManyToOne',
+            entity: table2Name,
+            required: true
+          }
+        }
+      });
+    });
+
+  })
+
+
+  schema.tables = Array.from(new Set(schema.tables.map(JSON.stringify))).map(JSON.parse);
+
+  // for many to many tables, add relations to the main tables
+  schema.tables.filter(table => Object.keys(table.properties).length === 0).forEach(table => {
+    const table1 = toPascalCase(toSingle(table.name.split('_')[0]));
+    const table2 = toPascalCase(toSingle(table.name.split('_')[1]));
+
+    const table1Relation = {
+      type: 'ManyToMany',
+      entity: table2,
+      required: false
+    };
+
+    const table2Relation = {
+      type: 'ManyToMany',
+      entity: table1,
+      required: false
+    };
+
+    const table1Index = schema.tables.findIndex(t => t.name === table1);
+    const table2Index = schema.tables.findIndex(t => t.name === table2);
+
+    schema.tables[table1Index].relations[toPlural(table2).toLowerCase()] = table1Relation;
+    schema.tables[table2Index].relations[toPlural(table1).toLowerCase()] = table2Relation;
+
+    // change this table name
+    table.name = `${toPascalCase(toSingle(table1))}${toPascalCase(toPlural(table2))}`;
+  })
+
+
 
   return schema;
 }

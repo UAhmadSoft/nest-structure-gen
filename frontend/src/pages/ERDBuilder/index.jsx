@@ -155,10 +155,49 @@ export function ERDBuilder() {
     const alreadyRelation = nodes.find((node) =>
       node.data.relations?.find((rel) => rel.id === relation.id)
     );
-    console.log('alreadyRelation', alreadyRelation)
     if (alreadyRelation) {
-      setNodes((nds) =>
-        nds.map((node) => {
+      if (relation.type === 'OneToMany' || relation.type === 'OneToOne' || relation.type === 'ManyToMany') {
+        const reverseName = relation.type === 'OneToMany' ? 'ManyToOne' : relation.type;
+
+        let newNodes = nodes.map((node) => {
+          if (node.id === relation.targetTable) {
+            return {
+              ...node,
+              data: {
+                ...node.data,
+                relations: [
+                  ...(node.data.relations || []),
+                  {
+                    name: relation.sourceTable,
+                    type: reverseName,
+                    required: relation.required,
+                    id: `${relation.targetTable}-${relation.sourceTable}` // Unique ID for relation
+                  }
+                ]
+              }
+            };
+          }
+          return node;
+        });
+
+        newNodes = Array.from(new Set([...newNodes, alreadyRelation]));
+
+        // Create edge with custom styling
+        const newEdge = {
+          id: `${relation.targetTable}-${relation.sourceTable}`,
+          source: relation.targetTable,
+          target: relation.sourceTable,
+          type: reverseName,
+          data: {
+            relationType: reverseName,
+            label: reverseName
+          },
+          animated: true
+        };
+
+        let newEdges = Array.from(new Set([...edges, newEdge]));
+
+        setNodes(newNodes.map((node) => {
           return {
             ...node,
             data: {
@@ -176,9 +215,8 @@ export function ERDBuilder() {
         }
         ));
 
-      // Update edge with custom styling
-      setEdges((eds) =>
-        eds.map((edge) => {
+        // Update edge with custom styling
+        setEdges(newEdges.map((edge) => {
           if (edge.id === relation.id) {
             return {
               ...edge,
@@ -190,49 +228,92 @@ export function ERDBuilder() {
           }
           return edge;
         })
+        );
+
+        setEditingRelation(undefined)
+      }
+
+    }
+    else {
+      let newNodes = [...nodes];
+      let newEdges = [...edges];
+      if (relation.type === 'OneToMany' || relation.type === 'OneToOne' || relation.type === 'ManyToMany') {
+        const reverseName = relation.type === 'OneToMany' ? 'ManyToOne' : relation.type;
+
+        newNodes = newNodes.map((node) => {
+          if (node.id === relation.targetTable) {
+            return {
+              ...node,
+              data: {
+                ...node.data,
+                relations: [
+                  ...(node.data.relations || []),
+                  {
+                    name: relation.sourceTable,
+                    type: reverseName,
+                    required: relation.required,
+                    id: `${relation.targetTable}-${relation.sourceTable}` // Unique ID for relation
+                  }
+                ]
+              }
+            };
+          }
+          return node;
+        });
+
+        // Create edge with custom styling
+        const newEdge = {
+          id: `${relation.targetTable}-${relation.sourceTable}`,
+          source: relation.targetTable,
+          target: relation.sourceTable,
+          type: 'custom',
+          data: {
+            relationType: reverseName,
+            label: reverseName,
+          },
+          animated: true
+        };
+
+        newEdges = [...newEdges, newEdge];
+      }
+      setNodes(
+        newNodes.map((node) => {
+          if (node.id === relation.sourceTable) {
+            return {
+              ...node,
+              data: {
+                ...node.data,
+                relations: [
+                  ...(node.data.relations || []),
+                  {
+                    name: relation.targetTable,
+                    type: relation.type,
+                    required: relation.required,
+                    id: `${relation.sourceTable}-${relation.targetTable}` // Unique ID for relation
+                  }
+                ]
+              }
+            };
+          }
+          return node;
+        })
       );
 
-      setEditingRelation(undefined)
-      return;
+      // Create edge with custom styling
+      const newEdge = {
+        id: `${relation.sourceTable}-${relation.targetTable}`,
+        source: relation.sourceTable,
+        target: relation.targetTable,
+        type: 'custom',
+        data: {
+          relationType: relation.type,
+          label: relation.type
+        },
+        animated: true
+      };
+      setEdges([...newEdges, newEdge]);
     }
-
-    setNodes((nds) =>
-      nds.map((node) => {
-        if (node.id === relation.sourceTable) {
-          return {
-            ...node,
-            data: {
-              ...node.data,
-              relations: [
-                ...(node.data.relations || []),
-                {
-                  name: relation.targetTable,
-                  type: relation.type,
-                  required: relation.required,
-                  id: `${relation.sourceTable}-${relation.targetTable}` // Unique ID for relation
-                }
-              ]
-            }
-          };
-        }
-        return node;
-      })
-    );
-
-    // Create edge with custom styling
-    const newEdge = {
-      id: `${relation.sourceTable}-${relation.targetTable}`,
-      source: relation.sourceTable,
-      target: relation.targetTable,
-      type: 'custom',
-      data: {
-        relationType: relation.type,
-        label: relation.type
-      },
-      animated: true
-    };
-    setEdges((eds) => [...eds, newEdge]);
-  };
+  }
 
   const exportSchema = () => {
     const schema = generateSchema(nodes, projectPath);
@@ -286,6 +367,7 @@ export function ERDBuilder() {
   };
 
   const confirmDelete = () => {
+    console.log("deleteConfirm", deleteConfirm)
     if (!deleteConfirm.data) return;
 
     if (deleteConfirm.data.type === 'column') {
@@ -307,8 +389,26 @@ export function ERDBuilder() {
         })
       );
     } else if (deleteConfirm.data.type === 'table') {
-      setNodes((nds) => nds.filter((node) => node.id !== deleteConfirm.data.id));
-      setEdges((eds) => eds.filter((edge) => edge.source !== deleteConfirm.data.id && edge.target !== deleteConfirm.data.id));
+      let newNodes = [...nodes];
+      let newEdges = [...edges];
+      newNodes = newNodes.filter((node) => node.id !== deleteConfirm.data.id)
+      newEdges = newEdges.filter((edge) => edge.source !== deleteConfirm.data.id && edge.target !== deleteConfirm.data.id)
+      // delete all relations and edges related to the table
+      newNodes = newNodes.map((node) => {
+        return {
+          ...node,
+          data: {
+            ...node.data,
+            relations: node.data.relations.filter((rel) => rel.name !== deleteConfirm.data.id)
+          }
+        };
+      });
+
+      setNodes(newNodes);
+
+      newEdges = newEdges.filter((edge) => edge.source !== deleteConfirm.data.id && edge.target !== deleteConfirm.data.id)
+      setEdges(newEdges);
+
       setSelectedTable(null);
     } else if (deleteConfirm.data.type === 'relation') {
       setNodes((nds) =>
@@ -451,7 +551,12 @@ export function ERDBuilder() {
   // Filter edges based on relation types
   const filteredEdges = edges.filter((edge) =>
     activeFilters.includes(edge.data?.relationType)
-  );
+  ).map((edge) => {
+    return {
+      ...edge,
+      isSelected: true
+    };
+  });
 
   // Load saved state
   useEffect(() => {
@@ -533,6 +638,7 @@ export function ERDBuilder() {
             }, 500);
             console.log('Edit relation:', relation);
           }}
+          selectedTable={selectedTable}
           onDeleteRelation={(relation) => {
             // Add relation deletion logic here
             console.log('de')
@@ -545,7 +651,7 @@ export function ERDBuilder() {
       ),
       group: GroupNode,
     }),
-    [theme, handleEditColumn, handleDeleteColumn]
+    [theme, handleEditColumn, handleDeleteColumn, selectedTable]
   );
 
   // Setup keyboard shortcuts
@@ -683,6 +789,7 @@ export function ERDBuilder() {
         `}
                       onClick={() => setSelectedTable(node.id)}
                     >
+                      {index + 1 + ") "}
                       {node.data.name}
                     </div>
                   ))}
@@ -706,6 +813,7 @@ export function ERDBuilder() {
                   x: 200,
                   y: 200
                 }}
+                edgesFocusable
                 onNodeClick={handleNodeClick}
               >
                 <Background color="#ddd" gap={16} />
