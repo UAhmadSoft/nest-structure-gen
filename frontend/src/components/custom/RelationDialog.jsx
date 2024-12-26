@@ -21,7 +21,7 @@ export function RelationDialog({ isOpen, onClose, tables, sourceTable, onAddRela
     if (currentRelation) {
       setRelation({
         type: currentRelation.type,
-        targetTable: currentRelation.targetTable,
+        targetTable: currentRelation.name || currentRelation.targetTable,
         required: currentRelation.required
       });
     }
@@ -34,6 +34,7 @@ export function RelationDialog({ isOpen, onClose, tables, sourceTable, onAddRela
   const handleSubmit = (e) => {
     e.preventDefault();
     onAddRelation({
+      name: currentRelation ? currentRelation.targetTable : '',
       ...relation,
       sourceTable,
       id: currentRelation ? currentRelation.id : undefined

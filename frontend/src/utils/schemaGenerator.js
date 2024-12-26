@@ -65,11 +65,11 @@ export function generateSchema(nodes, projectPath) {
           break;
 
         case 'ManyToOne':
-          key = toSnakeCase(relation.name) + '_id';
+          key = toSnakeCase(toSingle(relation.name)).toLowerCase() + '_id';
           break;
 
         case 'OneToOne':
-          key = toSnakeCase(relation.name) + '_id';
+          key = toSnakeCase(toSingle(relation.name)).toLowerCase() + '_id';
           break;
 
         case 'ManyToMany':
@@ -109,12 +109,12 @@ export function generateSchema(nodes, projectPath) {
         create_relation_get_route: true,
         properties: {},
         relations: {
-          [toSnakeCase(table1Key)]: {
+          [toSingle(toSingle(table1Key)).toLowerCase()]: {
             type: 'ManyToOne',
             entity: table1Name,
             required: true
           },
-          [toSnakeCase(table2Key)]: {
+          [toSingle(toSingle(table2Key)).toLowerCase()]: {
             type: 'ManyToOne',
             entity: table2Name,
             required: true

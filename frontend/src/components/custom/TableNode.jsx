@@ -95,7 +95,10 @@ export function TableNode({
                 onClick={(e) => {
                   e.stopPropagation();
                   console.log('relation1', relation)
-                  onEditRelation(relation);
+                  onEditRelation({
+                    ...relation,
+                    sourceTable: data.name
+                  });
                 }}
                 className="p-1 nodrag hover:bg-gray-100 rounded"
               >

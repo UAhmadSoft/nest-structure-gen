@@ -155,11 +155,13 @@ export function ERDBuilder() {
     const alreadyRelation = nodes.find((node) =>
       node.data.relations?.find((rel) => rel.id === relation.id)
     );
+    console.log('alreadyRelation', alreadyRelation)
     if (alreadyRelation) {
+      let newNodes = nodes; let newEdges = edges;
       if (relation.type === 'OneToMany' || relation.type === 'OneToOne' || relation.type === 'ManyToMany') {
         const reverseName = relation.type === 'OneToMany' ? 'ManyToOne' : relation.type;
 
-        let newNodes = nodes.map((node) => {
+        newNodes = nodes.map((node) => {
           if (node.id === relation.targetTable) {
             return {
               ...node,
@@ -195,43 +197,43 @@ export function ERDBuilder() {
           animated: true
         };
 
-        let newEdges = Array.from(new Set([...edges, newEdge]));
+        newEdges = Array.from(new Set([...edges, newEdge]));
 
-        setNodes(newNodes.map((node) => {
-          return {
-            ...node,
-            data: {
-              ...node.data,
-              relations: node.data.relations.map((rel) => {
-                console.log('rel.id', rel.id)
-                console.log('relation.id', relation.id)
-                if (rel.id === relation.id) {
-                  return relation;
-                }
-                return rel;
-              })
-            }
+      }
+      setNodes(newNodes.map((node) => {
+        return {
+          ...node,
+          data: {
+            ...node.data,
+            relations: node.data.relations.map((rel) => {
+              console.log('rel.id', rel.id)
+              console.log('relation.id', relation.id)
+              if (rel.id === relation.id) {
+                return relation;
+              }
+              return rel;
+            })
           }
         }
-        ));
-
-        // Update edge with custom styling
-        setEdges(newEdges.map((edge) => {
-          if (edge.id === relation.id) {
-            return {
-              ...edge,
-              data: {
-                relationType: relation.type,
-                label: relation.type
-              }
-            };
-          }
-          return edge;
-        })
-        );
-
-        setEditingRelation(undefined)
       }
+      ));
+
+      // Update edge with custom styling
+      setEdges(newEdges.map((edge) => {
+        if (edge.id === relation.id) {
+          return {
+            ...edge,
+            data: {
+              relationType: relation.type,
+              label: relation.type
+            }
+          };
+        }
+        return edge;
+      })
+      );
+
+      setEditingRelation(undefined)
 
     }
     else {

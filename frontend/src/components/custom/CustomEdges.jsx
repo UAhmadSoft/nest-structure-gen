@@ -32,6 +32,7 @@ export function CustomEdge({
   markerEnd,
   isSelected
 }) {
+  // console.log('id', id)
   const [edgePath, labelX, labelY] = getBezierPath({
     sourceX,
     sourceY,
