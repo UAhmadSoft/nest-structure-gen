@@ -1,12 +1,145 @@
 {
-  "url": "D:/Projects/NodeJs/sike/src",
+  "url": "D:/Projects/Node/sike-api/src",
   "char_primary_key": false,
-  "insert_to_modules": true,
-  "entity_module_file": "D:/Projects/NodeJs/sike/src/infrastructure/entities/db.ts",
-  "repository_module_file": "D:/Projects/NodeJs/sike/src/infrastructure/repository/repository.module.ts",
-  "usecase_module_file": "D:/Projects/NodeJs/sike/src/usecases/usecase.module.ts",
-  "controller_module_file": "D:/Projects/NodeJs/sike/src/infrastructure/controllers/controller.module.ts",
+  "insert_to_modules": false,
+  "entity_module_file": "D:/Projects/Node/sike-api/src/infrastructure/entities/db.ts",
+  "repository_module_file": "D:/Projects/Node/sike-api/src/infrastructure/repository/repository.module.ts",
+  "usecase_module_file": "D:/Projects/Node/sike-api/src/usecases/usecase.module.ts",
+  "controller_module_file": "D:/Projects/Node/sike-api/src/infrastructure/controllers/controller.module.ts",
   "tables": [
+    {
+      "name": "User",
+      "create_pagination_route": true,
+      "create_relation_get_route": true,
+      "properties": {
+        "email": {
+          "type": "varchar",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "password": {
+          "type": "varchar",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "signup_otp": {
+          "type": "int",
+          "nullable": true,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "signup_otp_expiry": {
+          "type": "timestamptz",
+          "nullable": true,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "forget_otp": {
+          "type": "int",
+          "nullable": true,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "forget_otp_expiry": {
+          "type": "timestamptz",
+          "nullable": true,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "account_type": {
+          "type": "varchar",
+          "nullable": true,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "is_social_login": {
+          "type": "boolean",
+          "nullable": false,
+          "default": "false",
+          "length": null,
+          "unsigned": false
+        },
+        "is_active": {
+          "type": "boolean",
+          "nullable": false,
+          "default": "false",
+          "length": null,
+          "unsigned": false
+        },
+        "social_type": {
+          "type": "varchar",
+          "nullable": true,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        }
+      },
+      "relations": {
+        "wallet_id": {
+          "type": "OneToOne",
+          "entity": "Wallet",
+          "required": false,
+          "isOwner": true
+        },
+        "transactions": {
+          "type": "OneToMany",
+          "entity": "Transaction",
+          "required": false
+        },
+        "personal_profile_id": {
+          "type": "OneToOne",
+          "entity": "PersonalProfile",
+          "required": false,
+          "isOwner": true
+        },
+        "professional_profile_id": {
+          "type": "OneToOne",
+          "entity": "ProfessionalProfile",
+          "required": false,
+          "isOwner": true
+        },
+        "notifications": {
+          "type": "OneToMany",
+          "entity": "Notification",
+          "required": false
+        },
+        "reviews": {
+          "type": "OneToMany",
+          "entity": "Review",
+          "required": false
+        },
+        "journals": {
+          "type": "ManyToMany",
+          "entity": "Journal",
+          "required": false,
+          "isOwner": true
+        },
+        "availabilities": {
+          "type": "OneToMany",
+          "entity": "Availability",
+          "required": false
+        },
+        "goals": {
+          "type": "OneToMany",
+          "entity": "Goal",
+          "required": false
+        },
+        "messages": {
+          "type": "OneToMany",
+          "entity": "Message",
+          "required": false
+        }
+      }
+    },
     {
       "name": "Review",
       "create_pagination_route": true,
@@ -375,8 +508,13 @@
         }
       },
       "relations": {
-        "users": {
-          "type": "OneToMany",
+        "user1": {
+          "type": "ManyToOne",
+          "entity": "User",
+          "required": true
+        },
+        "user2": {
+          "type": "ManyToOne",
           "entity": "User",
           "required": true
         },
@@ -469,10 +607,15 @@
         }
       },
       "relations": {
-        "users": {
-          "type": "OneToMany",
+        "threpist": {
+          "type": "ManyToOne",
           "entity": "User",
-          "required": false
+          "required": true
+        },
+        "user": {
+          "type": "ManyToOne",
+          "entity": "User",
+          "required": true
         },
         "session_notes": {
           "type": "OneToMany",
@@ -533,7 +676,8 @@
         "exercises": {
           "type": "ManyToMany",
           "entity": "Exercise",
-          "required": false
+          "required": false,
+          "isOwner": true
         },
         "users": {
           "type": "ManyToMany",
@@ -674,7 +818,7 @@
       }
     },
     {
-      "name": "ExerciseJournals",
+      "name": "JournalExercises",
       "create_pagination_route": true,
       "create_relation_get_route": true,
       "properties": {},
@@ -786,113 +930,11 @@
           "type": "OneToOne",
           "entity": "Booking",
           "required": true
-        }
-      }
-    },
-    {
-      "name": "User",
-      "create_pagination_route": true,
-      "create_relation_get_route": true,
-      "properties": {
-        "email": {
-          "type": "varchar",
-          "nullable": false,
-          "default": null,
-          "length": null,
-          "unsigned": false
         },
-        "password": {
-          "type": "varchar",
-          "nullable": false,
-          "default": null,
-          "length": null,
-          "unsigned": false
-        },
-        "signup_otp": {
-          "type": "varchar",
-          "nullable": false,
-          "default": null,
-          "length": null,
-          "unsigned": false
-        },
-        "signup_otp_expiry": {
-          "type": "timestamptz",
-          "nullable": true,
-          "default": null,
-          "length": null,
-          "unsigned": false
-        },
-        "forget_otp": {
-          "type": "varchar",
-          "nullable": true,
-          "default": null,
-          "length": null,
-          "unsigned": false
-        },
-        "forget_otp_expiry": {
-          "type": "timestamptz",
-          "nullable": true,
-          "default": null,
-          "length": null,
-          "unsigned": false
-        },
-        "account_type": {
-          "type": "varchar",
-          "nullable": true,
-          "default": null,
-          "length": null,
-          "unsigned": false
-        },
-        "is_social_login": {
-          "type": "boolean",
-          "nullable": false,
-          "default": "false",
-          "length": null,
-          "unsigned": false
-        },
-        "social_type": {
-          "type": "varchar",
-          "nullable": true,
-          "default": null,
-          "length": null,
-          "unsigned": false
-        }
-      },
-      "relations": {
-        "wallet_id": {
-          "type": "OneToOne",
-          "entity": "Wallet",
-          "required": false
-        },
-        "transactions": {
-          "type": "OneToMany",
-          "entity": "Transaction",
-          "required": false
-        },
-        "personal_profile_id": {
-          "type": "OneToOne",
-          "entity": "PersonalProfile",
-          "required": false
-        },
-        "professional_profile_id": {
-          "type": "OneToOne",
-          "entity": "ProfessionalProfile",
-          "required": false
-        },
-        "notifications": {
-          "type": "OneToMany",
-          "entity": "Notification",
-          "required": false
-        },
-        "reviews": {
-          "type": "OneToMany",
-          "entity": "Review",
-          "required": false
-        },
-        "journals": {
-          "type": "ManyToMany",
-          "entity": "Journal",
-          "required": false
+        "user_id": {
+          "type": "ManyToOne",
+          "entity": "User",
+          "required": true
         }
       }
     },
@@ -934,7 +976,13 @@
           "unsigned": false
         }
       },
-      "relations": {}
+      "relations": {
+        "bookings": {
+          "type": "OneToMany",
+          "entity": "Booking",
+          "required": false
+        }
+      }
     },
     {
       "name": "Booking",
