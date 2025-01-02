@@ -24,6 +24,10 @@ class NestjsResourceGenerator {
     return pluralize(str);
   }
 
+  getPascalSpaceCase(str) {
+    return str.replace(/([A-Z])/g, (match) => ` ${this.getPascalCase(match)}`).trim();
+  }
+
   toSnakeCase(string) {
     let str = string.replace(/([A-Z])/g, (match) => `_${match.toLowerCase()}`)
     return str.startsWith('_') ? str.slice(1) : str;
@@ -37,7 +41,7 @@ class NestjsResourceGenerator {
 
   getEntityFileName(name) {
     // Always singular: product.entity.ts
-    return `${this.getCamelCase(name)}.entity.ts`;
+    return `${(name).toLowerCase()}.entity.ts`;
   }
 
   getEntityClassName(name) {
@@ -221,8 +225,9 @@ class NestjsResourceGenerator {
       'integer': '@IsNumber()',
       'decimal': '@IsNumber()',
       'boolean': '@IsBoolean()',
-      'timestamp': '@IsDate()',
-      'timestamptz': '@IsDate()',
+      'timestamp': '@IsString()',
+      'timestamptz': '@IsString()',
+      'double precision': '@IsNumber()',
       'json': '',
       'jsonb': ''
     };
@@ -288,9 +293,9 @@ class NestjsResourceGenerator {
   generateRepositoryInterface(table) {
     const entityName = this.getPascalCase(table.name);
     const template = `
-      import { ${entityName}Model, Fetch${entityName}Model, Update${entityName}Model } from 'src/domain/models/${this.getCamelCase(table.name)}.model';
+      import { ${entityName}Model, Fetch${entityName}Model, Update${entityName}Model } from 'src/domain/models/${(table.name).toLowerCase()}.model';
       import { PaginatedResponse } from 'src/domain/common/interfaces/paginated-response.interface';
-      import { Query${entityName}Dto } from 'src/infrastructure/controllers/${this.getCamelCase(table.name)}/${this.getCamelCase(table.name)}.dto';
+      import { Query${entityName}Dto } from 'src/infrastructure/controllers/${(table.name).toLowerCase()}/${(table.name).toLowerCase()}.dto';
 
       export interface I${entityName} {
         create${entityName}(${this.getCamelCase(table.name)}Model: ${entityName}Model): Promise<Fetch${entityName}Model>;
@@ -310,17 +315,18 @@ class NestjsResourceGenerator {
 
   // Generate repository implementation
   generateRepository(table) {
+
     const entityName = this.getPascalCase(table.name);
     const pluralEntityName = this.getPlural(entityName);
     const template = `
       import { Injectable, NotFoundException } from '@nestjs/common';
       import { InjectRepository } from '@nestjs/typeorm';
       import { Repository } from 'typeorm';
-      import { ${entityName}Model, Fetch${entityName}Model, Update${entityName}Model } from 'src/domain/models/${this.getCamelCase(table.name)}.model';
-      import { I${entityName} } from 'src/domain/repositories/${this.getCamelCase(table.name)}.repository.interface';
-      import { ${(pluralEntityName)} } from 'src/infrastructure/entities/${this.getCamelCase(entityName)}.entity';
+      import { ${entityName}Model, Fetch${entityName}Model, Update${entityName}Model } from 'src/domain/models/${(table.name).toLowerCase()}.model';
+      import { I${entityName} } from 'src/domain/repositories/${(table.name).toLowerCase()}.repository.interface';
+      import { ${(pluralEntityName)} } from 'src/infrastructure/entities/${(entityName).toLowerCase()}.entity';
       import { PaginatedResponse } from 'src/domain/common/interfaces/paginated-response.interface';
-      import { Query${entityName}Dto } from 'src/infrastructure/controllers/${this.getCamelCase(table.name)}/${this.getCamelCase(table.name)}.dto';
+      import { Query${entityName}Dto } from 'src/infrastructure/controllers/${(table.name).toLowerCase()}/${(table.name).toLowerCase()}.dto';
 
       @Injectable()
       export class ${entityName}Repository implements I${entityName} {
@@ -446,9 +452,9 @@ class NestjsResourceGenerator {
     const entityName = this.getPascalCase(table.name);
     const template = `
       import { Injectable } from '@nestjs/common';
-      import { ${entityName}Model, Update${entityName}Model } from 'src/domain/models/${this.getCamelCase(table.name)}.model';
-      import { ${entityName}Repository } from 'src/infrastructure/repository/${this.getCamelCase(table.name)}.repository';
-      import { Query${entityName}Dto } from 'src/infrastructure/controllers/${this.getCamelCase(table.name)}/${this.getCamelCase(table.name)}.dto';
+      import { ${entityName}Model, Update${entityName}Model } from 'src/domain/models/${(table.name).toLowerCase()}.model';
+      import { ${entityName}Repository } from 'src/infrastructure/repository/${(table.name).toLowerCase()}.repository';
+      import { Query${entityName}Dto } from 'src/infrastructure/controllers/${(table.name).toLowerCase()}/${(table.name).toLowerCase()}.dto';
 
       @Injectable()
       export class ${entityName}UseCases {
@@ -502,12 +508,12 @@ class NestjsResourceGenerator {
       ParseIntPipe,
     } from '@nestjs/common';
     import { JwtAuthGuard } from 'src/infrastructure/common/guards/jwtAuth.guard';
-    import { ${entityName}UseCases } from 'src/usecases/${this.getCamelCase(table.name)}/${this.getCamelCase(table.name)}.usecases';
-    import { Create${entityName}Dto, Update${entityName}Dto, Query${entityName}Dto } from './${this.getCamelCase(table.name)}.dto';
+    import { ${entityName}UseCases } from 'src/usecases/${(table.name).toLowerCase()}/${(table.name).toLowerCase()}.usecases';
+    import { Create${entityName}Dto, Update${entityName}Dto, Query${entityName}Dto } from './${(table.name).toLowerCase()}.dto';
     import { ApiTags, ApiOperation } from '@nestjs/swagger';
 
-    @ApiTags('${this.getPlural(table.name)}')
-    @Controller('${this.getCamelCase(this.getPlural(table.name))}')
+    @ApiTags('${(this.getPascalSpaceCase(this.getPlural(table.name)))}')
+    @Controller('${this.toSnakeCase(this.getCamelCase(this.getPlural(table.name)))}')
     @UseGuards(JwtAuthGuard)
     export class ${entityName}Controller {
       constructor(private readonly ${this.getCamelCase(table.name)}UseCases: ${entityName}UseCases) {}
@@ -562,7 +568,7 @@ class NestjsResourceGenerator {
     const entityName = this.getPascalCase(table.name);
     const template = `
     ${Object.entries(table.relations).map(([key, rel]) => `
-      import { ${this.getEntityClassName(rel.entity || key)} } from '../../infrastructure/entities/${this.getCamelCase(rel.entity || key)}.entity';
+      import { ${this.getEntityClassName(rel.entity || key)} } from '../../infrastructure/entities/${(rel.entity || key).toLowerCase()}.entity';
     `).join('\n')}
 
     // Base model for creating a ${entityName}
@@ -767,10 +773,10 @@ class NestjsResourceGenerator {
         // Update db.ts
         // Add import if it doesn't exist
         if (!sourceFile.getImportDeclaration(
-          (imp) => imp.getModuleSpecifierValue() === `./${this.getCamelCase(entityName)}.entity`
+          (imp) => imp.getModuleSpecifierValue() === `./${(entityName).toLowerCase()}.entity`
         )) {
           sourceFile.addImportDeclaration({
-            moduleSpecifier: `./${this.getCamelCase(entityName)}.entity`,
+            moduleSpecifier: `./${(entityName).toLowerCase()}.entity`,
             namedImports: [{ name: this.getEntityClassName(entityName) }]
           });
         }
@@ -795,11 +801,11 @@ class NestjsResourceGenerator {
       case 'repository':
         // Check if import already exists
         if (!sourceFile.getImportDeclaration(
-          (imp) => imp.getModuleSpecifierValue() === `./${this.getCamelCase(entityName)}.repository`
+          (imp) => imp.getModuleSpecifierValue() === `./${(entityName).toLowerCase()}.repository`
         )) {
           sourceFile.addImportDeclaration({
-            moduleSpecifier: `./${this.getCamelCase(entityName)}.repository`,
-            namedImports: [{ name: `${this.getPascalCase(entityName)}Repository` }]
+            moduleSpecifier: `./${(entityName).toLowerCase()}.repository`,
+            namedImports: [{ name: `${(entityName).toLowerCase()}Repository` }]
           });
         }
 
@@ -818,10 +824,10 @@ class NestjsResourceGenerator {
                 if (initializer.getKind() === ts.SyntaxKind.ArrayLiteralExpression) {
                   const elements = initializer.getElements();
                   const elementExists = elements.some(
-                    el => el.getText() === `${this.getPascalCase(entityName)}Repository`
+                    el => el.getText() === `${(entityName).toLowerCase()}Repository`
                   );
                   if (!elementExists) {
-                    initializer.addElement(`${this.getPascalCase(entityName)}Repository`);
+                    initializer.addElement(`${(entityName).toLowerCase()}Repository`);
                   }
                 }
               }
@@ -832,11 +838,11 @@ class NestjsResourceGenerator {
 
       case 'usecase':
         if (!sourceFile.getImportDeclaration(
-          (imp) => imp.getModuleSpecifierValue() === `./${this.getCamelCase(entityName)}/${this.getCamelCase(entityName)}.usecases`
+          (imp) => imp.getModuleSpecifierValue() === `./${(entityName).toLowerCase()}/${(entityName).toLowerCase()}.usecases`
         )) {
           sourceFile.addImportDeclaration({
-            moduleSpecifier: `./${this.getCamelCase(entityName)}/${this.getCamelCase(entityName)}.usecases`,
-            namedImports: [{ name: `${this.getPascalCase(entityName)}UseCases` }]
+            moduleSpecifier: `./${(entityName).toLowerCase()}/${(entityName).toLowerCase()}.usecases`,
+            namedImports: [{ name: `${(entityName).toLowerCase()}UseCases` }]
           });
         }
 
@@ -854,10 +860,10 @@ class NestjsResourceGenerator {
                 if (initializer.getKind() === ts.SyntaxKind.ArrayLiteralExpression) {
                   const elements = initializer.getElements();
                   const elementExists = elements.some(
-                    el => el.getText() === `${this.getPascalCase(entityName)}UseCases`
+                    el => el.getText() === `${(entityName).toLowerCase()}UseCases`
                   );
                   if (!elementExists) {
-                    initializer.addElement(`${this.getPascalCase(entityName)}UseCases`);
+                    initializer.addElement(`${(entityName).toLowerCase()}UseCases`);
                   }
                 }
               }
@@ -868,11 +874,11 @@ class NestjsResourceGenerator {
 
       case 'controller':
         if (!sourceFile.getImportDeclaration(
-          (imp) => imp.getModuleSpecifierValue() === `./${this.getCamelCase(entityName)}/${this.getCamelCase(entityName)}.controller`
+          (imp) => imp.getModuleSpecifierValue() === `./${(entityName).toLowerCase()}/${(entityName).toLowerCase()}.controller`
         )) {
           sourceFile.addImportDeclaration({
-            moduleSpecifier: `./${this.getCamelCase(entityName)}/${this.getCamelCase(entityName)}.controller`,
-            namedImports: [{ name: `${this.getPascalCase(entityName)}Controller` }]
+            moduleSpecifier: `./${(entityName).toLowerCase()}/${(entityName).toLowerCase()}.controller`,
+            namedImports: [{ name: `${(entityName).toLowerCase()}Controller` }]
           });
         }
 
@@ -890,10 +896,10 @@ class NestjsResourceGenerator {
                 if (initializer.getKind() === ts.SyntaxKind.ArrayLiteralExpression) {
                   const elements = initializer.getElements();
                   const elementExists = elements.some(
-                    el => el.getText() === `${this.getPascalCase(entityName)}Controller`
+                    el => el.getText() === `${(entityName).toLowerCase()}Controller`
                   );
                   if (!elementExists) {
-                    initializer.addElement(`${this.getPascalCase(entityName)}Controller`);
+                    initializer.addElement(`${(entityName).toLowerCase()}Controller`);
                   }
                 }
               }
@@ -945,35 +951,36 @@ class NestjsResourceGenerator {
           },
           dto: {
             content: await (this.generateDto(table)),
-            path: path.join(this.schema.url, 'infrastructure/controllers', this.getCamelCase(table.name), `${this.getCamelCase(table.name)}.dto.ts`)
+            path: path.join(this.schema.url, 'infrastructure/controllers', (table.name).toLowerCase(), `${(table.name).toLowerCase()}.dto.ts`)
           },
           repositoryInterface: {
             content: await (this.generateRepositoryInterface(table)),
-            path: path.join(this.schema.url, 'domain/repositories', `${this.getCamelCase(table.name)}.repository.interface.ts`)
+            path: path.join(this.schema.url, 'domain/repositories', `${(table.name).toLowerCase()}.repository.interface.ts`)
           },
           repository: {
             content: await (this.generateRepository(table)),
-            path: path.join(this.schema.url, 'infrastructure/repository', `${this.getCamelCase(table.name)}.repository.ts`)
+            path: path.join(this.schema.url, 'infrastructure/repository', `${(table.name).toLowerCase()}.repository.ts`)
           },
           useCase: {
             content: await (this.generateUseCase(table)),
-            path: path.join(this.schema.url, 'usecases', this.getCamelCase(table.name), `${this.getCamelCase(table.name)}.usecases.ts`)
+            path: path.join(this.schema.url, 'usecases', (table.name).toLowerCase(), `${(table.name).toLowerCase()}.usecases.ts`)
           },
-          controller: {
-            content: await (this.generateController(table)),
-            path: path.join(this.schema.url, 'infrastructure/controllers', this.getCamelCase(table.name), `${this.getCamelCase(table.name)}.controller.ts`)
-          },
-          migration: {
-            content: await (this.generateMigration(table)),
-            path: path.join(this.schema.url, '../database/migrations', `${Date.now()}-create-${this.getCamelCase(this.getPlural(table.name))}-table.ts`)
-          },
+          // controller: {
+          //   content: await (this.generateController(table)),
+          //   path: path.join(this.schema.url, 'infrastructure/controllers', (table.name).toLowerCase(), `${(table.name).toLowerCase()}.controller.ts`)
+          // },
+          // migration: {
+          //   content: await (this.generateMigration(table)),
+          //   path: path.join(this.schema.url, '../database/migrations', `${Date.now()}-create-${this.getCamelCase(this.getPlural(table.name))}-table.ts`)
+          // },
           model: {
             content: await (this.generateModel(table)),
-            path: path.join(this.schema.url, 'domain/models', `${this.getCamelCase(table.name)}.model.ts`)
+            path: path.join(this.schema.url, 'domain/models', `${(table.name).toLowerCase()}.model.ts`)
           },
         };
 
         // Write all files
+        console.log('files', files)
         for (const [key, file] of Object.entries(files)) {
           fs.writeFileSync(file.path, file.content);
           console.log(`Generated ${key} file at ${file.path}`);
@@ -1023,6 +1030,7 @@ class NestjsResourceGenerator {
       'boolean': 'boolean',
       'timestamp': 'Date',
       'timestamptz': 'Date',
+      'double precision': 'number',
       'json': 'Record<string, any>',
       'jsonb': 'Record<string, any>'
     };

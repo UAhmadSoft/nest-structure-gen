@@ -1,0 +1,1028 @@
+{
+  "url": "D:/Projects/Node/sike-api/src",
+  "char_primary_key": false,
+  "insert_to_modules": false,
+  "entity_module_file": "D:/Projects/Node/sike-api/src/infrastructure/entities/db.ts",
+  "repository_module_file": "D:/Projects/Node/sike-api/src/infrastructure/repository/repository.module.ts",
+  "usecase_module_file": "D:/Projects/Node/sike-api/src/usecases/usecase.module.ts",
+  "controller_module_file": "D:/Projects/Node/sike-api/src/infrastructure/controllers/controller.module.ts",
+  "tables": [
+    {
+      "name": "User",
+      "create_pagination_route": true,
+      "create_relation_get_route": true,
+      "properties": {
+        "email": {
+          "type": "varchar",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "password": {
+          "type": "varchar",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "signup_otp": {
+          "type": "int",
+          "nullable": true,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "signup_otp_expiry": {
+          "type": "timestamptz",
+          "nullable": true,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "forget_otp": {
+          "type": "int",
+          "nullable": true,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "forget_otp_expiry": {
+          "type": "timestamptz",
+          "nullable": true,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "account_type": {
+          "type": "varchar",
+          "nullable": true,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "is_social_login": {
+          "type": "boolean",
+          "nullable": false,
+          "default": "false",
+          "length": null,
+          "unsigned": false
+        },
+        "is_active": {
+          "type": "boolean",
+          "nullable": false,
+          "default": "false",
+          "length": null,
+          "unsigned": false
+        },
+        "social_type": {
+          "type": "varchar",
+          "nullable": true,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        }
+      },
+      "relations": {
+        "wallet_id": {
+          "type": "OneToOne",
+          "entity": "Wallet",
+          "required": false,
+          "isOwner": true
+        },
+        "transactions": {
+          "type": "OneToMany",
+          "entity": "Transaction",
+          "required": false
+        },
+        "personal_profile_id": {
+          "type": "OneToOne",
+          "entity": "PersonalProfile",
+          "required": false,
+          "isOwner": true
+        },
+        "professional_profile_id": {
+          "type": "OneToOne",
+          "entity": "ProfessionalProfile",
+          "required": false,
+          "isOwner": true
+        },
+        "notifications": {
+          "type": "OneToMany",
+          "entity": "Notification",
+          "required": false
+        },
+        "reviews": {
+          "type": "OneToMany",
+          "entity": "Review",
+          "required": false
+        },
+        "journals": {
+          "type": "ManyToMany",
+          "entity": "Journal",
+          "required": false,
+          "isOwner": true
+        },
+        "availabilities": {
+          "type": "OneToMany",
+          "entity": "Availability",
+          "required": false
+        },
+        "goals": {
+          "type": "OneToMany",
+          "entity": "Goal",
+          "required": false
+        },
+        "messages": {
+          "type": "OneToMany",
+          "entity": "Message",
+          "required": false
+        }
+      }
+    },
+    {
+      "name": "Review",
+      "create_pagination_route": true,
+      "create_relation_get_route": true,
+      "properties": {
+        "message": {
+          "type": "varchar",
+          "nullable": true,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "rating": {
+          "type": "int",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        }
+      },
+      "relations": {
+        "user_id": {
+          "type": "ManyToOne",
+          "entity": "User",
+          "required": true
+        }
+      }
+    },
+    {
+      "name": "Notification",
+      "create_pagination_route": true,
+      "create_relation_get_route": true,
+      "properties": {
+        "message": {
+          "type": "varchar",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "resource_title": {
+          "type": "varchar",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "resource_id": {
+          "type": "int",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "is_read": {
+          "type": "varchar",
+          "nullable": false,
+          "default": "false",
+          "length": null,
+          "unsigned": false
+        },
+        "image": {
+          "type": "varchar",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        }
+      },
+      "relations": {
+        "user_id": { "type": "ManyToOne", "entity": "User", "required": true }
+      }
+    },
+    {
+      "name": "Ticket",
+      "create_pagination_route": true,
+      "create_relation_get_route": true,
+      "properties": {
+        "first_name": {
+          "type": "varchar",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "last_name": {
+          "type": "varchar",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "title": {
+          "type": "varchar",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "message": {
+          "type": "varchar",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        }
+      },
+      "relations": {}
+    },
+    {
+      "name": "Availability",
+      "create_pagination_route": false,
+      "create_relation_get_route": false,
+      "properties": {
+        "day": {
+          "type": "varchar",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "time_slot": {
+          "type": "timestamptz",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        }
+      },
+      "relations": {
+        "user_id": {
+          "type": "ManyToOne",
+          "entity": "User",
+          "required": true
+        }
+      }
+    },
+    {
+      "name": "PersonalProfile",
+      "create_pagination_route": false,
+      "create_relation_get_route": false,
+      "properties": {
+        "first_name": {
+          "type": "varchar",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "last_name": {
+          "type": "varchar",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "phone_number": {
+          "type": "varchar",
+          "nullable": true,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "secondary_email": {
+          "type": "varchar",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        }
+      },
+      "relations": {
+        "user_id": {
+          "type": "OneToOne",
+          "entity": "User",
+          "required": true
+        }
+      }
+    },
+    {
+      "name": "ProfessionalProfile",
+      "create_pagination_route": false,
+      "create_relation_get_route": false,
+      "properties": {
+        "pricing_type": {
+          "type": "varchar",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "pricing": {
+          "type": "int",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "company_name": {
+          "type": "varchar",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "title": {
+          "type": "varchar",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "license_no": {
+          "type": "varchar",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "expiration_date": {
+          "type": "timestamptz",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "country": {
+          "type": "varchar",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "state": {
+          "type": "varchar",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "portfolio_link": {
+          "type": "varchar",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "testmonial_link": {
+          "type": "varchar",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "experience": {
+          "type": "int",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "languages": {
+          "type": "varchar",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "degree": {
+          "type": "varchar",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "college_name": {
+          "type": "varchar",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "specialization": {
+          "type": "varchar",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "started_on": {
+          "type": "timestamptz",
+          "nullable": true,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "graduated_on": {
+          "type": "timestamptz",
+          "nullable": true,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "awards": {
+          "type": "varchar",
+          "nullable": true,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "literary_works": {
+          "type": "varchar",
+          "nullable": true,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "books_authorship": {
+          "type": "varchar",
+          "nullable": true,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "certificate_title": {
+          "type": "varchar",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "institute_name": {
+          "type": "varchar",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "approach": {
+          "type": "varchar",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        }
+      },
+      "relations": {
+        "user_id": {
+          "type": "OneToOne",
+          "entity": "User",
+          "required": true
+        }
+      }
+    },
+    {
+      "name": "Chat",
+      "create_pagination_route": false,
+      "create_relation_get_route": false,
+      "properties": {
+        "color": {
+          "type": "varchar",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        }
+      },
+      "relations": {
+        "user1": {
+          "type": "ManyToOne",
+          "entity": "User",
+          "required": true
+        },
+        "user2": {
+          "type": "ManyToOne",
+          "entity": "User",
+          "required": true
+        },
+        "messages": {
+          "type": "OneToMany",
+          "entity": "Message",
+          "required": false
+        }
+      }
+    },
+    {
+      "name": "Message",
+      "create_pagination_route": true,
+      "create_relation_get_route": true,
+      "properties": {
+        "text": {
+          "type": "varchar",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "is_read": {
+          "type": "boolean",
+          "nullable": false,
+          "default": "false",
+          "length": null,
+          "unsigned": false
+        },
+        "attachment": {
+          "type": "varchar",
+          "nullable": true,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "attachment_type": {
+          "type": "varchar",
+          "nullable": true,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        }
+      },
+      "relations": {
+        "user_id": {
+          "type": "ManyToOne",
+          "entity": "User",
+          "required": true
+        },
+        "chat_id": {
+          "type": "ManyToOne",
+          "entity": "Chat",
+          "required": true
+        }
+      }
+    },
+    {
+      "name": "VideoSession",
+      "create_pagination_route": true,
+      "create_relation_get_route": true,
+      "properties": {
+        "start_time": {
+          "type": "timestamptz",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "end_time": {
+          "type": "timestamptz",
+          "nullable": true,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "status": {
+          "type": "varchar",
+          "nullable": false,
+          "default": "pending",
+          "length": null,
+          "unsigned": false
+        },
+        "duration": {
+          "type": "int",
+          "nullable": true,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        }
+      },
+      "relations": {
+        "threpist": {
+          "type": "ManyToOne",
+          "entity": "User",
+          "required": true
+        },
+        "user": {
+          "type": "ManyToOne",
+          "entity": "User",
+          "required": true
+        },
+        "session_notes": {
+          "type": "OneToMany",
+          "entity": "SessionNote",
+          "required": false
+        }
+      }
+    },
+    {
+      "name": "SessionNote",
+      "create_pagination_route": true,
+      "create_relation_get_route": true,
+      "properties": {
+        "note": {
+          "type": "varchar",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        }
+      },
+      "relations": {
+        "video_session_id": {
+          "type": "ManyToOne",
+          "entity": "VideoSession",
+          "required": true
+        }
+      }
+    },
+    {
+      "name": "Journal",
+      "create_pagination_route": true,
+      "create_relation_get_route": true,
+      "properties": {
+        "mood": {
+          "type": "varchar",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "description": {
+          "type": "varchar",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "audio": {
+          "type": "varchar",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        }
+      },
+      "relations": {
+        "exercises": {
+          "type": "ManyToMany",
+          "entity": "Exercise",
+          "required": false,
+          "isOwner": true
+        },
+        "users": {
+          "type": "ManyToMany",
+          "entity": "User",
+          "required": false
+        }
+      }
+    },
+    {
+      "name": "Goal",
+      "create_pagination_route": true,
+      "create_relation_get_route": true,
+      "properties": {
+        "title": {
+          "type": "varchar",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "description": {
+          "type": "varchar",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "category": {
+          "type": "varchar",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "deadline": {
+          "type": "timestamptz",
+          "nullable": true,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "reminder": {
+          "type": "boolean",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        }
+      },
+      "relations": {
+        "milestones": {
+          "type": "OneToMany",
+          "entity": "Milestone",
+          "required": false
+        },
+        "user_id": {
+          "type": "ManyToOne",
+          "entity": "User",
+          "required": true
+        }
+      }
+    },
+    {
+      "name": "Milestone",
+      "create_pagination_route": true,
+      "create_relation_get_route": true,
+      "properties": {
+        "titkle": {
+          "type": "varchar",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "description": {
+          "type": "varchar",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "deadline": {
+          "type": "timestamptz",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "is_complete": {
+          "type": "boolean",
+          "nullable": false,
+          "default": "false",
+          "length": null,
+          "unsigned": false
+        }
+      },
+      "relations": {
+        "goal_id": {
+          "type": "ManyToOne",
+          "entity": "Goal",
+          "required": true
+        }
+      }
+    },
+    {
+      "name": "Exercise",
+      "create_pagination_route": true,
+      "create_relation_get_route": true,
+      "properties": {
+        "title": {
+          "type": "varchar",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "image": {
+          "type": "varchar",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "description": {
+          "type": "varchar",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        }
+      },
+      "relations": {
+        "journals": {
+          "type": "ManyToMany",
+          "entity": "Journal",
+          "required": false
+        }
+      }
+    },
+    {
+      "name": "JournalExercises",
+      "create_pagination_route": true,
+      "create_relation_get_route": true,
+      "properties": {},
+      "relations": {
+        "exercise_id": {
+          "type": "ManyToOne",
+          "entity": "Exercise",
+          "required": true
+        },
+        "journal_id": {
+          "type": "ManyToOne",
+          "entity": "Journal",
+          "required": true
+        }
+      }
+    },
+    {
+      "name": "Wallet",
+      "create_pagination_route": true,
+      "create_relation_get_route": true,
+      "properties": {
+        "balance": {
+          "type": "float",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        }
+      },
+      "relations": {
+        "user_id": {
+          "type": "OneToOne",
+          "entity": "User",
+          "required": true
+        }
+      }
+    },
+    {
+      "name": "Transaction",
+      "create_pagination_route": true,
+      "create_relation_get_route": true,
+      "properties": {
+        "transaction_id": {
+          "type": "varchar",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "tax": {
+          "type": "float",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "total": {
+          "type": "float",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "card_name": {
+          "type": "varchar",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "card_number": {
+          "type": "varchar",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "amount": {
+          "type": "float",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "status": {
+          "type": "varchar",
+          "nullable": false,
+          "default": "pending",
+          "length": null,
+          "unsigned": false
+        },
+        "transaction_type": {
+          "type": "varchar",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "column": {
+          "type": "float",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        }
+      },
+      "relations": {
+        "booking_id": {
+          "type": "OneToOne",
+          "entity": "Booking",
+          "required": true
+        },
+        "user_id": {
+          "type": "ManyToOne",
+          "entity": "User",
+          "required": true
+        }
+      }
+    },
+    {
+      "name": "UserJournals",
+      "create_pagination_route": true,
+      "create_relation_get_route": true,
+      "properties": {},
+      "relations": {
+        "user_id": {
+          "type": "ManyToOne",
+          "entity": "User",
+          "required": true
+        },
+        "journal_id": {
+          "type": "ManyToOne",
+          "entity": "Journal",
+          "required": true
+        }
+      }
+    },
+    {
+      "name": "SessionType",
+      "create_pagination_route": true,
+      "create_relation_get_route": true,
+      "properties": {
+        "title": {
+          "type": "varchar",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "is_active": {
+          "type": "boolean",
+          "nullable": false,
+          "default": "true",
+          "length": null,
+          "unsigned": false
+        }
+      },
+      "relations": {
+        "bookings": {
+          "type": "OneToMany",
+          "entity": "Booking",
+          "required": false
+        }
+      }
+    },
+    {
+      "name": "Booking",
+      "create_pagination_route": true,
+      "create_relation_get_route": true,
+      "properties": {
+        "time_from": {
+          "type": "timestamptz",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "time_to": {
+          "type": "timestamptz",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "status": {
+          "type": "varchar",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        }
+      },
+      "relations": {
+        "session_type_id": {
+          "type": "ManyToOne",
+          "entity": "SessionType",
+          "required": true
+        },
+        "transaction_id": {
+          "type": "OneToOne",
+          "entity": "Transaction",
+          "required": false
+        }
+      }
+    }
+  ]
+}
