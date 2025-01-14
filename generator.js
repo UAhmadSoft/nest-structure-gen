@@ -17,7 +17,14 @@ class NestjsResourceGenerator {
   }
 
   getCamelCase(str) {
-    return str.replace(/([-_][a-z])/ig, (match) => match.toUpperCase().replace('-', '').replace('_', ''));
+    // return str.replace(/([-_][a-z])/ig, (match) => match.toUpperCase().replace('-', '').replace('_', ''));
+    // First handle kebab-case and snake_case
+    const intermediate = str.replace(/([-_][a-z])/ig, (match) =>
+      match.toUpperCase().replace('-', '').replace('_', '')
+    );
+
+    // Then ensure first character is lowercase
+    return intermediate.charAt(0).toLowerCase() + intermediate.slice(1);
   }
 
   getPlural(str) {
@@ -711,7 +718,6 @@ class NestjsResourceGenerator {
             `;
           }
           else if (rel.type === 'ManyToOne') {
-            console.log('key', key)
             return `
               await queryRunner.createForeignKey('${(this.getPlural(table.name))}', new TableForeignKey({
                 name: '${foreignKeyName}',
@@ -965,14 +971,14 @@ class NestjsResourceGenerator {
             content: await (this.generateUseCase(table)),
             path: path.join(this.schema.url, 'usecases', (table.name).toLowerCase(), `${(table.name).toLowerCase()}.usecases.ts`)
           },
-          // controller: {
-          //   content: await (this.generateController(table)),
-          //   path: path.join(this.schema.url, 'infrastructure/controllers', (table.name).toLowerCase(), `${(table.name).toLowerCase()}.controller.ts`)
-          // },
-          // migration: {
-          //   content: await (this.generateMigration(table)),
-          //   path: path.join(this.schema.url, '../database/migrations', `${Date.now()}-create-${this.getCamelCase(this.getPlural(table.name))}-table.ts`)
-          // },
+          controller: {
+            content: await (this.generateController(table)),
+            path: path.join(this.schema.url, 'infrastructure/controllers', (table.name).toLowerCase(), `${(table.name).toLowerCase()}.controller.ts`)
+          },
+          migration: {
+            content: await (this.generateMigration(table)),
+            path: path.join(this.schema.url, '../database/migrations', `${Date.now()}-create-${this.getCamelCase(this.getPlural(table.name))}-table.ts`)
+          },
           model: {
             content: await (this.generateModel(table)),
             path: path.join(this.schema.url, 'domain/models', `${(table.name).toLowerCase()}.model.ts`)
@@ -980,7 +986,6 @@ class NestjsResourceGenerator {
         };
 
         // Write all files
-        console.log('files', files)
         for (const [key, file] of Object.entries(files)) {
           fs.writeFileSync(file.path, file.content);
           console.log(`Generated ${key} file at ${file.path}`);

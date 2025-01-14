@@ -1,33 +1,35 @@
 {
-  "url": "D:/Projects/Nodejs/liberty-nest-js/src",
+  "url": "D:/Projects/NodeJs/valhalla-backend/src",
   "char_primary_key": false,
   "insert_to_modules": false,
-  "entity_module_file": "D:/Projects/Nodejs/liberty-nest-js/src/infrastructure/entities/db.ts",
-  "repository_module_file": "D:/Projects/Nodejs/liberty-nest-js/src/infrastructure/repository/repository.module.ts",
-  "usecase_module_file": "D:/Projects/Nodejs/liberty-nest-js/src/usecases/usecase.module.ts",
-  "controller_module_file": "D:/Projects/Nodejs/liberty-nest-js/src/infrastructure/controllers/controller.module.ts",
+  "entity_module_file": "D:/Projects/NodeJs/valhalla-backend/src/infrastructure/entities/db.ts",
+  "repository_module_file": "D:/Projects/NodeJs/valhalla-backend/src/infrastructure/repository/repository.module.ts",
+  "usecase_module_file": "D:/Projects/NodeJs/valhalla-backend/src/usecases/usecase.module.ts",
+  "controller_module_file": "D:/Projects/NodeJs/valhalla-backend/src/infrastructure/controllers/controller.module.ts",
   "tables": [
     {
-      "name": "WithdrawRequest",
-      "create_pagination_route": true,
-      "create_relation_get_route": true,
+      "name": "Notifications",
+      "create_pagination_route": false,
+      "create_relation_get_route": false,
       "properties": {
-        "symbol": {
+        "title": {
           "type": "varchar"
         },
-        "address": {
+        "img": {
           "type": "varchar"
         },
-        "amount": {
-          "type": "double precision"
+        "message": {
+          "type": "varchar"
         },
-        "network": {
-          "type": "varchar",
-          "isNullable": false
+        "resource_name": {
+          "type": "varchar"
         },
-        "status": {
-          "type": "varchar",
-          "default": "pending"
+        "resource_id": {
+          "type": "varchar"
+        },
+        "is_read": {
+          "type": "boolean",
+          "default": false
         }
       },
       "relations": {
