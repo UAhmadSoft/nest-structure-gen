@@ -174,6 +174,7 @@ class NestjsResourceGenerator {
   // Updated generate entity function
   generateEntity(table) {
     const entityClassName = this.getEntityClassName(table.name);
+    const tableName = this.toSnakeCase(this.getCamelCase(this.getPlural(table.name)).toLowerCase());
 
     const template = `
       import {
@@ -198,7 +199,7 @@ class NestjsResourceGenerator {
       return `import { ${this.getEntityClassName(rel.entity || key)} } from './${this.getEntityFileName(rel.entity || key).replace('.ts', '')}';`
     }).filter(Boolean).join('\n')}
 
-      @Entity('${this.getCamelCase(this.getPlural(table.name))}')
+      @Entity('${tableName}')
       export class ${entityClassName} {
         @PrimaryGeneratedColumn({ type: '${this.schema.char_primary_key ? 'uuid' : 'int4'}' })
         id: ${this.schema.char_primary_key ? 'string' : 'number'};
@@ -626,6 +627,7 @@ class NestjsResourceGenerator {
   // Generate migration
   generateMigration(table) {
     const timestamp = Date.now();
+    const tableName = this.toSnakeCase(this.getCamelCase(this.getPlural(table.name)).toLowerCase());
     const template = `
     import { MigrationInterface, QueryRunner, Table, TableForeignKey, TableColumn } from 'typeorm';
 
@@ -633,7 +635,7 @@ class NestjsResourceGenerator {
       public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.createTable(
           new Table({
-            name: '${this.getCamelCase(this.getPlural(table.name))}',
+            name: '${tableName}',
             columns: [
               {
                 name: 'id',
@@ -702,7 +704,7 @@ class NestjsResourceGenerator {
                   foreignKeys: [
                     {
                       columnNames: ['${this.getCamelCase(table.name)}_id'],
-                      referencedTableName: '${this.getCamelCase(this.getPlural(table.name))}',
+                      referencedTableName: '${tableName}',
                       referencedColumnNames: ['id'],
                       onDelete: 'CASCADE',
                     },
@@ -762,7 +764,7 @@ class NestjsResourceGenerator {
           }
           return '';
         }).join('\n')}
-        await queryRunner.dropTable('${this.getCamelCase(this.getPlural(table.name))}');
+        await queryRunner.dropTable('${tableName}');
       }
     }
   `;
