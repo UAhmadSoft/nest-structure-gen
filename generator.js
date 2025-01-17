@@ -725,7 +725,7 @@ class NestjsResourceGenerator {
                 name: '${foreignKeyName}',
                 columnNames: ['${this.toSnakeCase(key)}'],
                 referencedColumnNames: ['id'],
-                referencedTableName: '${(this.toSnakeCase(rel.entity))}',
+                referencedTableName: '${(this.toSnakeCase(this.getPlural(rel.entity)))}',
                 onDelete: 'CASCADE',
                 onUpdate: 'CASCADE',
               }));
@@ -739,7 +739,7 @@ class NestjsResourceGenerator {
                 name: '${foreignKeyName}',
                 columnNames: ['${onetooneRelationProperty}'],
                 referencedColumnNames: ['id'],
-                referencedTableName: '${this.toSnakeCase(rel.entity)}',
+                referencedTableName: '${this.toSnakeCase(this.getPlural(rel.entity))}',
                 onDelete: 'CASCADE',
                 onUpdate: 'CASCADE',
               }));
