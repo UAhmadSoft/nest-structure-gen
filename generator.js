@@ -710,7 +710,7 @@ class NestjsResourceGenerator {
                     },
                     {
                       columnNames: ['${this.getCamelCase(key)}_id'],
-                      referencedTableName: '${this.getCamelCase(this.getPlural(key))}',
+                      referencedTableName: '${this.toSnakeCase(this.getPlural(key))}',
                       referencedColumnNames: ['id'],
                       onDelete: 'CASCADE',
                     },
@@ -725,7 +725,7 @@ class NestjsResourceGenerator {
                 name: '${foreignKeyName}',
                 columnNames: ['${this.toSnakeCase(key)}'],
                 referencedColumnNames: ['id'],
-                referencedTableName: '${(this.getPlural(rel.entity))}',
+                referencedTableName: '${(this.toSnakeCase(rel.entity))}',
                 onDelete: 'CASCADE',
                 onUpdate: 'CASCADE',
               }));
@@ -739,7 +739,7 @@ class NestjsResourceGenerator {
                 name: '${foreignKeyName}',
                 columnNames: ['${onetooneRelationProperty}'],
                 referencedColumnNames: ['id'],
-                referencedTableName: '${this.getPlural(rel.entity)}',
+                referencedTableName: '${this.toSnakeCase(rel.entity)}',
                 onDelete: 'CASCADE',
                 onUpdate: 'CASCADE',
               }));
