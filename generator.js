@@ -721,7 +721,7 @@ class NestjsResourceGenerator {
           }
           else if (rel.type === 'ManyToOne') {
             return `
-              await queryRunner.createForeignKey('${(this.getPlural(table.name))}', new TableForeignKey({
+               await queryRunner.createForeignKey('${tableName}', new TableForeignKey({
                 name: '${foreignKeyName}',
                 columnNames: ['${this.toSnakeCase(key)}'],
                 referencedColumnNames: ['id'],
@@ -735,7 +735,7 @@ class NestjsResourceGenerator {
             const onetooneRelationProperty = `${this.toSnakeCase(rel.entity).toLowerCase()}_id`;
             return `
 
-              await queryRunner.createForeignKey('${(this.getPlural(table.name))}', new TableForeignKey({
+              await queryRunner.createForeignKey('${tableName}', new TableForeignKey({
                 name: '${foreignKeyName}',
                 columnNames: ['${onetooneRelationProperty}'],
                 referencedColumnNames: ['id'],
@@ -754,13 +754,13 @@ class NestjsResourceGenerator {
           const foreignKeyName = `${this.toSnakeCase(table.name)}_${this.toSnakeCase(this.getPlural(rel.entity))}_fk`;
 
           if (rel.type === 'ManyToMany') {
-            return `await queryRunner.dropForeignKey('${this.getPlural(table.name)}', '${this.getCamelCase(table.name)}_${this.toSnakeCase(rel.entity)}_fk');`;
+            return `await queryRunner.dropForeignKey('${tableName}', '${this.getCamelCase(table.name)}_${this.toSnakeCase(rel.entity)}_fk');`;
           }
           else if (rel.type === 'ManyToOne') {
-            return `await queryRunner.dropForeignKey('${this.getPlural(table.name)}', '${foreignKeyName}');`;
+            return `await queryRunner.dropForeignKey('${tableName}', '${foreignKeyName}');`;
           }
           else if (rel.type === 'OneToOne' && (!rel.isOwner || rel.isOwner === false)) {
-            return `await queryRunner.dropForeignKey('${this.getPlural(table.name)}', '${foreignKeyName}');`;
+            return `await queryRunner.dropForeignKey('${tableName}', '${foreignKeyName}');`;
           }
           return '';
         }).join('\n')}
