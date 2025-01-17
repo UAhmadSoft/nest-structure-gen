@@ -627,7 +627,7 @@ class NestjsResourceGenerator {
   // Generate migration
   generateMigration(table) {
     const timestamp = Date.now();
-    const tableName = this.toSnakeCase(this.getCamelCase(this.getPlural(table.name)).toLowerCase());
+    const tableName = this.toSnakeCase(this.getCamelCase(this.getPlural(table.name))).toLowerCase();
     const template = `
     import { MigrationInterface, QueryRunner, Table, TableForeignKey, TableColumn } from 'typeorm';
 
