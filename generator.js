@@ -174,7 +174,7 @@ class NestjsResourceGenerator {
   // Updated generate entity function
   generateEntity(table) {
     const entityClassName = this.getEntityClassName(table.name);
-    const tableName = this.toSnakeCase(this.getCamelCase(this.getPlural(table.name)).toLowerCase());
+    const tableName = this.toSnakeCase(this.getCamelCase(this.getPlural(table.name))).toLowerCase();
 
     const template = `
       import {

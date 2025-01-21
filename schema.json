@@ -1,41 +1,81 @@
 {
-  "url": "D:/Projects/NodeJs/valhalla-backend/src",
+  "url": "D:/Projects/NodeJs/sike-api/src",
   "char_primary_key": false,
   "insert_to_modules": false,
-  "entity_module_file": "D:/Projects/NodeJs/valhalla-backend/src/infrastructure/entities/db.ts",
-  "repository_module_file": "D:/Projects/NodeJs/valhalla-backend/src/infrastructure/repository/repository.module.ts",
-  "usecase_module_file": "D:/Projects/NodeJs/valhalla-backend/src/usecases/usecase.module.ts",
-  "controller_module_file": "D:/Projects/NodeJs/valhalla-backend/src/infrastructure/controllers/controller.module.ts",
+  "entity_module_file": "D:/Projects/NodeJs/sike-api/src/infrastructure/entities/db.ts",
+  "repository_module_file": "D:/Projects/NodeJs/sike-api/src/infrastructure/repository/repository.module.ts",
+  "usecase_module_file": "D:/Projects/NodeJs/sike-api/src/usecases/usecase.module.ts",
+  "controller_module_file": "D:/Projects/NodeJs/sike-api/src/infrastructure/controllers/controller.module.ts",
   "tables": [
     {
-      "name": "Notifications",
-      "create_pagination_route": false,
-      "create_relation_get_route": false,
+      "name": "GoalCategory",
+      "create_pagination_route": true,
+      "create_relation_get_route": true,
       "properties": {
-        "title": {
-          "type": "varchar"
-        },
-        "img": {
-          "type": "varchar"
-        },
-        "message": {
-          "type": "varchar"
-        },
-        "resource_name": {
-          "type": "varchar"
-        },
-        "resource_id": {
-          "type": "varchar"
-        },
-        "is_read": {
-          "type": "boolean",
-          "default": false
+        "name": {
+          "type": "varchar",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
         }
       },
       "relations": {
+        "goals": {
+          "type": "OneToMany",
+          "entity": "Goal",
+          "required": false
+        }
+      }
+    },
+    {
+      "name": "Goal",
+      "create_pagination_route": true,
+      "create_relation_get_route": true,
+      "properties": {
+        "title": {
+          "type": "varchar",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "description": {
+          "type": "varchar",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "deadline": {
+          "type": "timestamptz",
+          "nullable": true,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        },
+        "reminder": {
+          "type": "boolean",
+          "nullable": false,
+          "default": null,
+          "length": null,
+          "unsigned": false
+        }
+      },
+      "relations": {
+        "milestones": {
+          "type": "OneToMany",
+          "entity": "Milestone",
+          "required": false
+        },
         "user_id": {
           "type": "ManyToOne",
           "entity": "User",
+          "required": true
+        },
+        "goal_category_id": {
+          "type": "ManyToOne",
+          "entity": "GoalCategory",
           "required": true
         }
       }
