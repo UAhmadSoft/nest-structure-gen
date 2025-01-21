@@ -8,74 +8,28 @@
   "controller_module_file": "D:/Projects/NodeJs/sike-api/src/infrastructure/controllers/controller.module.ts",
   "tables": [
     {
-      "name": "GoalCategory",
-      "create_pagination_route": true,
+      "name": "VideoCall",
+      "create_pagination_route": false,
       "create_relation_get_route": true,
       "properties": {
-        "name": {
-          "type": "varchar",
-          "nullable": false,
-          "default": null,
-          "length": null,
-          "unsigned": false
+        "channel_name": {
+          "type": "varchar"
+        },
+        "start_time": {
+          "type": "timestamp"
+        },
+        "end_time": {
+          "type": "timestamp"
+        },
+        "is_active": {
+          "type": "boolean"
         }
       },
       "relations": {
-        "goals": {
-          "type": "OneToMany",
-          "entity": "Goal",
-          "required": false
-        }
-      }
-    },
-    {
-      "name": "Goal",
-      "create_pagination_route": true,
-      "create_relation_get_route": true,
-      "properties": {
-        "title": {
-          "type": "varchar",
-          "nullable": false,
-          "default": null,
-          "length": null,
-          "unsigned": false
-        },
-        "description": {
-          "type": "varchar",
-          "nullable": false,
-          "default": null,
-          "length": null,
-          "unsigned": false
-        },
-        "deadline": {
-          "type": "timestamptz",
-          "nullable": true,
-          "default": null,
-          "length": null,
-          "unsigned": false
-        },
-        "reminder": {
-          "type": "boolean",
-          "nullable": false,
-          "default": null,
-          "length": null,
-          "unsigned": false
-        }
-      },
-      "relations": {
-        "milestones": {
-          "type": "OneToMany",
-          "entity": "Milestone",
-          "required": false
-        },
-        "user_id": {
-          "type": "ManyToOne",
-          "entity": "User",
-          "required": true
-        },
-        "goal_category_id": {
-          "type": "ManyToOne",
-          "entity": "GoalCategory",
+        "booking_id": {
+          "type": "OneToOne",
+          "entity": "Bookings",
+          "isOwner": true,
           "required": true
         }
       }

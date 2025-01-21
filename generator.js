@@ -134,14 +134,14 @@ class NestjsResourceGenerator {
             onUpdate: 'NO ACTION',
           })
           @JoinColumn({ name: '${this.getCamelCase(relationName)}' })
-          ${this.toSnakeCase(propertyName)}?: number;
+          ${this.toSnakeCase(propertyName)}${relation.required === false ? "?" : ""}: number;
           
           @OneToOne(() => ${relatedClassName}, (${this.getCamelCase(relationName)}) => ${this.getCamelCase(relationName)}.${this.getInversePropertyName(relationName, entityName, relation.type)}, {
             onDelete: 'NO ACTION',
             onUpdate: 'NO ACTION',
           })
           @JoinColumn({ name: '${this.getCamelCase(relationName)}' })
-          ${this.toSnakeCase(propertyName).replace("_id", "Data")}?: ${relatedClassName};
+          ${this.toSnakeCase(propertyName).replace("_id", "Data")}${relation.required === false ? "?" : ""}: ${relatedClassName};
         `;
 
       case 'ManyToMany':
@@ -205,7 +205,7 @@ class NestjsResourceGenerator {
         id: ${this.schema.char_primary_key ? 'string' : 'number'};
 
         ${Object.entries(table.properties).map(([key, prop]) => `
-          @Column({ type: '${prop.type}'${prop.nullable ? ', nullable: true' : ''} })
+          @Column({ type: '${prop.type}'${prop.required === false ? ', nullable: true' : ''} })
           ${key}: ${this.getTypeScriptType(prop.type)};
         `).join('\n')}
 
@@ -251,12 +251,12 @@ class NestjsResourceGenerator {
 
       export class Create${entityName}Dto {
         ${Object.entries(table.properties).map(([key, prop]) => `
-          ${prop.nullable ? '@IsOptional()' : '@IsNotEmpty()'}
+          ${prop.required === false ? '@IsOptional()' : '@IsNotEmpty()'}
           ${this.getPropTypeValidator(prop.type)}
-          @ApiProperty({ required: ${!prop.nullable} })
+          @ApiProperty({ required: ${!prop.required === false} })
           ${key}: ${this.getTypeScriptType(prop.type)};
         `).join('\n')}
-        ${Object.entries(table.relations).map(([key, prop]) => prop.type === 'ManyToOne' ? `
+        ${Object.entries(table.relations).map(([key, prop]) => (prop.type === 'ManyToOne' || (prop.type === 'OneToOne' && prop.isOwner)) ? `
           ${prop.required ? '@IsOptional()' : '@IsNotEmpty()'}
           @IsNumber()
           @ApiProperty({ required: ${!prop.required} })
@@ -271,7 +271,7 @@ class NestjsResourceGenerator {
           @ApiProperty({ required: false })
           ${key}?: ${this.getTypeScriptType(prop.type)};
         `).join('\n')}
-         ${Object.entries(table.relations).map(([key, prop]) => prop.type === 'ManyToOne' ? `
+         ${Object.entries(table.relations).map(([key, prop]) => (prop.type === 'ManyToOne' || (prop.type === 'OneToOne' && prop.isOwner)) ? `
           ${'@IsOptional()'}
           @IsNumber()
           @ApiProperty({ required: false })
@@ -582,9 +582,12 @@ class NestjsResourceGenerator {
     // Base model for creating a ${entityName}
     export class ${entityName}Model {
       ${Object.entries(table.properties).map(([key, prop]) => `
-        ${key}${prop.nullable ? "?" : ""}: ${this.getTypeScriptType(prop.type)};`).join('')}
+        ${key}${prop.required === false ? "?" : ""}: ${this.getTypeScriptType(prop.type)};`).join('')}
       ${Object.entries(table.relations).map(([key, rel]) => {
       if (rel.type === 'ManyToOne') {
+        return `${this.toSnakeCase(key)}: number;`;
+      }
+      else if (rel.type === 'OneToOne' && rel.isOwner) {
         return `${this.toSnakeCase(key)}: number;`;
       }
       return '';
@@ -650,7 +653,7 @@ class NestjsResourceGenerator {
                 {
                   name: '${key}',
                   type: '${prop.type}',
-                  ${prop.nullable ? 'isNullable: true,' : ''}
+                  ${prop.required === false ? 'isNullable: true,' : ''}
                   ${prop.default ? `default: ` + (prop.type === 'varchar' || prop.type === 'text' ? `"'${prop.default}'"` : prop.default) + ',' : ''}
                 },
               `).join('\n')}
@@ -658,7 +661,7 @@ class NestjsResourceGenerator {
                 {
                   name: '${key}',
                   type: '${this.schema.char_primary_key ? 'uuid' : 'int4'}',
-                  ${prop.nullable ? 'isNullable: true,' : ''}
+                  ${prop.required === false ? 'isNullable: true,' : ''}
                 },
               ` : prop.type === 'OneToOne' && (!prop.isOwner || prop.isOwner === false) ? `
                 {
