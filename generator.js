@@ -99,11 +99,11 @@ class NestjsResourceGenerator {
     };
 
     const isOwner = relation.isOwner;
-
+    const relation_field_name = this.toSnakeCase(this.getCamelCase(relationName));
     switch (relation.type) {
       case 'OneToMany':
         return `
-          @OneToMany(() => ${relatedClassName}, (${this.getCamelCase(relationName)}) => ${this.getCamelCase(relationName)}.${toSnakeCase(this.getCamelCase(entityName))}_id, {
+          @OneToMany(() => ${relatedClassName}, (${relation_field_name}) => ${relation_field_name}.${toSnakeCase(this.getCamelCase(entityName))}_id, {
             onDelete: 'NO ACTION',
             onUpdate: 'NO ACTION',
           })
@@ -112,35 +112,35 @@ class NestjsResourceGenerator {
 
       case 'ManyToOne':
         return `
-          @ManyToOne(() => ${relatedClassName}, (${this.getCamelCase(relationName)}) => ${this.getCamelCase(relationName)}.${this.toSnakeCase(this.getPlural(entityName)).toLowerCase()}, {
+          @ManyToOne(() => ${relatedClassName}, (${relation_field_name}) => ${relation_field_name}.${this.toSnakeCase(this.getPlural(entityName)).toLowerCase()}, {
             onDelete: 'NO ACTION',
             onUpdate: 'NO ACTION',
           })
-          @JoinColumn({ name: '${toSnakeCase(this.getCamelCase(relationName))}' })
-          ${toSnakeCase(this.getCamelCase(relationName))}${relation.required ? "" : "?"}: number;
+          @JoinColumn({ name: '${toSnakeCase(relation_field_name)}' })
+          ${toSnakeCase(relation_field_name)}${relation.required ? "" : "?"}: number;
           
-          @ManyToOne(() => ${relatedClassName}, (${this.getCamelCase(relationName)}) => ${this.getCamelCase(relationName)}.${this.toSnakeCase(this.getPlural(entityName)).toLowerCase()}, {
+          @ManyToOne(() => ${relatedClassName}, (${relation_field_name}) => ${relation_field_name}.${this.toSnakeCase(this.getPlural(entityName)).toLowerCase()}, {
             onDelete: 'NO ACTION',
             onUpdate: 'NO ACTION',
           })
-          @JoinColumn({ name: '${toSnakeCase(this.getCamelCase(relationName))}' })
+          @JoinColumn({ name: '${toSnakeCase(relation_field_name)}' })
           ${this.getCamelCase(relationName.replace("_id", "Data"))}${relation.required ? "" : "?"}: ${relatedClassName};
         `;
 
       case 'OneToOne':
         return `
-          @OneToOne(() => ${relatedClassName}, (${this.getCamelCase(relationName)}) => ${this.getCamelCase(relationName)}.${this.getInversePropertyName(relationName, entityName, relation.type)}, {
+          @OneToOne(() => ${relatedClassName}, (${relation_field_name}) => ${relation_field_name}.${this.getInversePropertyName(relationName, entityName, relation.type)}, {
             onDelete: 'NO ACTION',
             onUpdate: 'NO ACTION',
           })
-          @JoinColumn({ name: '${this.getCamelCase(relationName)}' })
+          @JoinColumn({ name: '${relation_field_name}' })
           ${this.toSnakeCase(propertyName)}${relation.required === false ? "?" : ""}: number;
           
-          @OneToOne(() => ${relatedClassName}, (${this.getCamelCase(relationName)}) => ${this.getCamelCase(relationName)}.${this.getInversePropertyName(relationName, entityName, relation.type)}, {
+          @OneToOne(() => ${relatedClassName}, (${relation_field_name}) => ${relation_field_name}.${this.getInversePropertyName(relationName, entityName, relation.type)}, {
             onDelete: 'NO ACTION',
             onUpdate: 'NO ACTION',
           })
-          @JoinColumn({ name: '${this.getCamelCase(relationName)}' })
+          @JoinColumn({ name: '${relation_field_name}' })
           ${this.toSnakeCase(propertyName).replace("_id", "Data")}${relation.required === false ? "?" : ""}: ${relatedClassName};
         `;
 
@@ -151,7 +151,7 @@ class NestjsResourceGenerator {
           `${this.toSingle(this.getPascalCase(this.toSnakeCase(relationName)))}${this.getPlural(this.getPascalCase(this.toSnakeCase(entityName)))}`
         const propertyname = this.toSnakeCase(jointTableName);
         return `
-          @ManyToMany(() => ${relatedClassName}, (${this.getCamelCase(relationName)}) => ${this.getCamelCase(relationName)}.${propertyname})
+          @ManyToMany(() => ${relatedClassName}, (${relation_field_name}) => ${relation_field_name}.${propertyname})
           ${isOwner ? `@JoinTable({
             name: '${jointTableName}',
             joinColumn: {
