@@ -587,8 +587,8 @@ class NestjsResourceGenerator {
       if (rel.type === 'ManyToOne') {
         return `${this.toSnakeCase(key)}: number;`;
       }
-      else if (rel.type === 'OneToOne' && rel.isOwner) {
-        return `${this.toSnakeCase(key)}: number;`;
+      else if (rel.type === 'OneToOne' && !rel.isOwner) {
+        return `${this.toSnakeCase(key)}${rel.required === false ? '?' : ''}: number;`;
       }
       return '';
     }).filter(Boolean).join('\n')}
@@ -606,6 +606,10 @@ class NestjsResourceGenerator {
         `;
       } else if (rel.type === 'OneToMany') {
         return `${this.getCamelCase(this.getPlural(key))}?: ${this.getEntityClassName(rel.entity || key)}[];`;
+      }
+      else if (rel.type === 'OneToOne' && !rel.isOwner) {
+        return `${this.toSnakeCase(key).replace("_id", "Data")}${rel.required === true ? "" : "?"}: ${this.getEntityClassName(rel.entity || key)};
+        `;
       }
       return '';
     }).filter(Boolean).join('')}
@@ -665,7 +669,7 @@ class NestjsResourceGenerator {
                 },
               ` : prop.type === 'OneToOne' && (!prop.isOwner || prop.isOwner === false) ? `
                 {
-                  name: '${this.toSnakeCase(prop.entity).toLowerCase()}_id',
+                  name: '${this.toSnakeCase(this.toSingle(prop.entity)).toLowerCase()}_id',
                   type: '${this.schema.char_primary_key ? 'uuid' : 'int4'}',
                   ${prop.required ? 'isNullable: false,' : ''}
                   isUnique: true,
@@ -735,7 +739,7 @@ class NestjsResourceGenerator {
             `;
           }
           else if (rel.type === 'OneToOne' && (!rel.isOwner || rel.isOwner === false)) {
-            const onetooneRelationProperty = `${this.toSnakeCase(rel.entity).toLowerCase()}_id`;
+            const onetooneRelationProperty = `${this.toSnakeCase(this.toSingle(rel.entity)).toLowerCase()}_id`;
             return `
 
               await queryRunner.createForeignKey('${tableName}', new TableForeignKey({

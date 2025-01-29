@@ -8,28 +8,22 @@
   "controller_module_file": "D:/Projects/NodeJs/sike-api/src/infrastructure/controllers/controller.module.ts",
   "tables": [
     {
-      "name": "VideoCall",
+      "name": "UserDevice",
       "create_pagination_route": false,
       "create_relation_get_route": true,
       "properties": {
-        "channel_name": {
+        "fcm_token": {
           "type": "varchar"
-        },
-        "start_time": {
-          "type": "timestamp"
-        },
-        "end_time": {
-          "type": "timestamp"
         },
         "is_active": {
           "type": "boolean"
         }
       },
       "relations": {
-        "booking_id": {
+        "user_id": {
           "type": "OneToOne",
-          "entity": "Bookings",
-          "isOwner": true,
+          "entity": "Users",
+          "isOwner": false,
           "required": true
         }
       }
