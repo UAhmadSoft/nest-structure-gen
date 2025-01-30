@@ -256,7 +256,7 @@ class NestjsResourceGenerator {
           @ApiProperty({ required: ${!prop.required === false} })
           ${key}: ${this.getTypeScriptType(prop.type)};
         `).join('\n')}
-        ${Object.entries(table.relations).map(([key, prop]) => (prop.type === 'ManyToOne' || (prop.type === 'OneToOne' && prop.isOwner)) ? `
+        ${Object.entries(table.relations).map(([key, prop]) => (prop.type === 'ManyToOne' || (prop.type === 'OneToOne' && prop.isOwner === false)) ? `
           ${prop.required ? '@IsOptional()' : '@IsNotEmpty()'}
           @IsNumber()
           @ApiProperty({ required: ${!prop.required} })
@@ -271,7 +271,7 @@ class NestjsResourceGenerator {
           @ApiProperty({ required: false })
           ${key}?: ${this.getTypeScriptType(prop.type)};
         `).join('\n')}
-         ${Object.entries(table.relations).map(([key, prop]) => (prop.type === 'ManyToOne' || (prop.type === 'OneToOne' && prop.isOwner)) ? `
+         ${Object.entries(table.relations).map(([key, prop]) => (prop.type === 'ManyToOne' || (prop.type === 'OneToOne' && prop.isOwner === false)) ? `
           ${'@IsOptional()'}
           @IsNumber()
           @ApiProperty({ required: false })
@@ -582,12 +582,12 @@ class NestjsResourceGenerator {
     // Base model for creating a ${entityName}
     export class ${entityName}Model {
       ${Object.entries(table.properties).map(([key, prop]) => `
-        ${key}${prop.required === false ? "?" : ""}: ${this.getTypeScriptType(prop.type)};`).join('')}
+        ${key}${prop.nullable === true ? "?" : ""}: ${this.getTypeScriptType(prop.type)};`).join('')}
       ${Object.entries(table.relations).map(([key, rel]) => {
       if (rel.type === 'ManyToOne') {
         return `${this.toSnakeCase(key)}: number;`;
       }
-      else if (rel.type === 'OneToOne' && !rel.isOwner) {
+      else if (rel.type === 'OneToOne' && rel.isOwner === false) {
         return `${this.toSnakeCase(key)}${rel.required === false ? '?' : ''}: number;`;
       }
       return '';
