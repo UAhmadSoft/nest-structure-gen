@@ -1023,6 +1023,30 @@
           "required": false
         }
       }
+    },
+    {
+      "name": "Privacy",
+      "create_pagination_route": false,
+      "create_relation_get_route": true,
+      "properties": {
+        "title": {
+          "type": "varchar"
+        },
+        "key": {
+          "type": "varchar"
+        },
+        "is_allowed": {
+          "type": "boolean"
+        }
+      },
+      "relations": {
+        "user_id": {
+          "type": "OneToOne",
+          "entity": "Users",
+          "isOwner": false,
+          "required": true
+        }
+      }
     }
   ]
 }
