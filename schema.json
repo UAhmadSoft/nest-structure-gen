@@ -1,11 +1,11 @@
 {
-  "url": "D:/Projects/NodeJs/sike-api/src",
+  "url": "D:/Projects/Node/sike-api/src",
   "char_primary_key": false,
   "insert_to_modules": false,
-  "entity_module_file": "D:/Projects/NodeJs/sike-api/src/infrastructure/entities/db.ts",
-  "repository_module_file": "D:/Projects/NodeJs/sike-api/src/infrastructure/repository/repository.module.ts",
-  "usecase_module_file": "D:/Projects/NodeJs/sike-api/src/usecases/usecase.module.ts",
-  "controller_module_file": "D:/Projects/NodeJs/sike-api/src/infrastructure/controllers/controller.module.ts",
+  "entity_module_file": "D:/Projects/Node/sike-api/src/infrastructure/entities/db.ts",
+  "repository_module_file": "D:/Projects/Node/sike-api/src/infrastructure/repository/repository.module.ts",
+  "usecase_module_file": "D:/Projects/Node/sike-api/src/usecases/usecase.module.ts",
+  "controller_module_file": "D:/Projects/Node/sike-api/src/infrastructure/controllers/controller.module.ts",
   "tables": [
     {
       "name": "VideoCall",

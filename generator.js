@@ -253,14 +253,14 @@ class NestjsResourceGenerator {
         ${Object.entries(table.properties).map(([key, prop]) => `
           ${prop.required === false ? '@IsOptional()' : '@IsNotEmpty()'}
           ${this.getPropTypeValidator(prop.type)}
-          @ApiProperty({ required: ${!prop.required === false} })
+          @ApiProperty({ required: ${prop.required === false ? false : true} })
           ${key}: ${this.getTypeScriptType(prop.type)};
         `).join('\n')}
         ${Object.entries(table.relations).map(([key, prop]) => (prop.type === 'ManyToOne' || (prop.type === 'OneToOne' && prop.isOwner)) ? `
-          ${prop.required ? '@IsOptional()' : '@IsNotEmpty()'}
+          ${prop.required === false ? '@IsOptional()' : '@IsNotEmpty()'}
           @IsNumber()
-          @ApiProperty({ required: ${!prop.required} })
-          ${key}${prop.required ? "" : "?"}: number;
+          @ApiProperty({ required: ${prop.required} })
+          ${key}${prop.required === false ? "?" : ""}: number;
         `: "").join('\n')}
       }
 
