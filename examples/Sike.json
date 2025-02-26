@@ -1047,6 +1047,34 @@
           "required": true
         }
       }
+    },
+    {
+      "name": "Support",
+      "create_pagination_route": true,
+      "create_relation_get_route": true,
+      "properties": {
+        "first_name": {
+          "type": "varchar"
+        },
+        "last_name": {
+          "type": "varchar"
+        },
+        "title": {
+          "type": "varchar"
+        },
+        "message": {
+          "type": "varchar"
+        },
+        "email": {
+          "type": "varchar"
+        },
+        "status": {
+          "type": "varchar",
+          "default": "pending",
+          "nullable": true
+        }
+      },
+      "relations": {}
     }
   ]
 }
