@@ -251,9 +251,9 @@ class NestjsResourceGenerator {
 
       export class Create${entityName}Dto {
         ${Object.entries(table.properties).map(([key, prop]) => `
-          ${prop.required === false ? '@IsOptional()' : '@IsNotEmpty()'}
+          ${prop.nullable === true ? '@IsOptional()' : '@IsNotEmpty()'}
           ${this.getPropTypeValidator(prop.type)}
-          @ApiProperty({ required: ${!prop.required === false} })
+          @ApiProperty({ required: ${!prop.nullable === true} })
           ${key}: ${this.getTypeScriptType(prop.type)};
         `).join('\n')}
         ${Object.entries(table.relations).map(([key, prop]) => (prop.type === 'ManyToOne' || (prop.type === 'OneToOne' && prop.isOwner === false)) ? `
@@ -657,7 +657,7 @@ class NestjsResourceGenerator {
                 {
                   name: '${key}',
                   type: '${prop.type}',
-                  ${prop.required === false ? 'isNullable: true,' : ''}
+                  ${prop.nullable === true ? 'isNullable: true,' : ''}
                   ${prop.default ? `default: ` + (prop.type === 'varchar' || prop.type === 'text' ? `"'${prop.default}'"` : prop.default) + ',' : ''}
                 },
               `).join('\n')}
