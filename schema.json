@@ -1,29 +1,29 @@
 {
-  "url": "D:/Projects/Node/sike-api/src",
+  "url": "D:/Projects/Node/liberty-nest-js/src",
   "char_primary_key": false,
   "insert_to_modules": false,
-  "entity_module_file": "D:/Projects/Node/sike-api/src/infrastructure/entities/db.ts",
-  "repository_module_file": "D:/Projects/Node/sike-api/src/infrastructure/repository/repository.module.ts",
-  "usecase_module_file": "D:/Projects/Node/sike-api/src/usecases/usecase.module.ts",
-  "controller_module_file": "D:/Projects/Node/sike-api/src/infrastructure/controllers/controller.module.ts",
+  "entity_module_file": "D:/Projects/Node/liberty-nest-js/src/infrastructure/entities/db.ts",
+  "repository_module_file": "D:/Projects/Node/liberty-nest-js/src/infrastructure/repository/repository.module.ts",
+  "usecase_module_file": "D:/Projects/Node/liberty-nest-js/src/usecases/usecase.module.ts",
+  "controller_module_file": "D:/Projects/Node/liberty-nest-js/src/infrastructure/controllers/controller.module.ts",
   "tables": [
     {
-      "name": "UserDevice",
+      "name": "ActiveWallets",
       "create_pagination_route": false,
       "create_relation_get_route": true,
       "properties": {
-        "fcm_token": {
-          "type": "varchar"
+        "status": {
+          "type": "varchar",
+          "default": "'active'"
         },
-        "is_active": {
-          "type": "boolean"
+        "process_type": {
+          "type": "varchar"
         }
       },
       "relations": {
-        "user_id": {
-          "type": "OneToOne",
-          "entity": "Users",
-          "isOwner": false,
+        "user_wallet_id": {
+          "type": "ManyToOne",
+          "entity": "UserWallet",
           "required": true
         }
       }
