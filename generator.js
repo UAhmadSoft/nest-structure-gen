@@ -932,10 +932,10 @@ class NestjsResourceGenerator {
     const directories = [
       path.join(this.schema.url, 'infrastructure/entities'),
       path.join(this.schema.url, 'infrastructure/repository'),
-      path.join(this.schema.url, 'infrastructure/controllers', this.getCamelCase(tableName)),
+      path.join(this.schema.url, 'infrastructure/controllers', (tableName).toLowerCase()),
       path.join(this.schema.url, 'domain/models'),
       path.join(this.schema.url, 'domain/repositories'),
-      path.join(this.schema.url, 'usecases', this.getCamelCase(tableName)),
+      path.join(this.schema.url, 'usecases', (tableName).toLowerCase()),
       path.join(this.schema.url, 'infrastructure/migrations'),
     ];
 
