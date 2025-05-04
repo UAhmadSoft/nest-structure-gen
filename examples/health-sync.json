@@ -1,0 +1,329 @@
+{
+  "url": "D:/Projects/health-sync-api/src",
+  "char_primary_key": false,
+  "insert_to_modules": false,
+  "entity_module_file": "D:/Projects/health-sync-api/src/infrastructure/entities/db.ts",
+  "repository_module_file": "D:/Projects/health-sync-api/src/infrastructure/repository/repository.module.ts",
+  "usecase_module_file": "D:/Projects/health-sync-api/src/usecases/usecase.module.ts",
+  "controller_module_file": "D:/Projects/health-sync-api/src/infrastructure/controllers/controller.module.ts",
+  "tables": [
+    {
+      "name": "QuizAnswers",
+      "create_pagination_route": true,
+      "create_relation_get_route": true,
+      "properties": {
+        "answers_json": {
+          "type": "jsonb",
+          "required": true
+        },
+        "gpt_response_json": {
+          "type": "jsonb",
+          "required": false
+        }
+      },
+      "relations": {
+        "user_id": {
+          "type": "ManyToOne",
+          "entity": "User",
+          "required": true
+        },
+        "custom_packs": {
+          "type": "OneToMany",
+          "entity": "CustomPacks"
+        }
+      }
+    },
+    {
+      "name": "Products",
+      "create_pagination_route": true,
+      "create_relation_get_route": false,
+      "properties": {
+        "okc_product_id": { "type": "uuid", "required": true },
+        "client_id": { "type": "uuid", "required": true },
+        "product_line_id": { "type": "uuid" },
+        "client_custom_product_id": { "type": "varchar" },
+        "client_sku": { "type": "varchar" },
+        "client_upc": { "type": "varchar" },
+        "name": { "type": "varchar", "required": true },
+        "active": { "type": "boolean", "default": true },
+        "price_per_pill": { "type": "double precision", "required": true },
+        "serving_size": { "type": "int4" },
+        "time_of_administration": { "type": "varchar" },
+        "custom_text_1": { "type": "varchar" },
+        "custom_text_2": { "type": "varchar" },
+        "custom_text_3": { "type": "varchar" },
+        "key_points": { "type": "text" },
+        "long_description": { "type": "text" },
+        "product_name": { "type": "varchar" },
+        "short_description": { "type": "text" },
+        "product_assembly_type": { "type": "varchar" },
+        "sfp_version": { "type": "varchar" },
+        "packaging_asset_group_id": { "type": "uuid" },
+        "crm_id": { "type": "varchar" },
+        "remote_created_at": { "type": "timestamp" },
+        "remote_updated_at": { "type": "timestamp" }
+      },
+      "relations": {
+        "pack_products": {
+          "type": "OneToMany",
+          "entity": "PackProducts"
+        }
+      }
+    },
+    {
+      "name": "SolutionPacks",
+      "create_pagination_route": true,
+      "create_relation_get_route": false,
+      "properties": {
+        "slug": {
+          "type": "varchar",
+          "required": true
+        },
+        "name": {
+          "type": "varchar",
+          "required": true
+        },
+        "description": {
+          "type": "text"
+        },
+        "price": {
+          "type": "double precision",
+          "required": true
+        }
+      },
+      "relations": {
+        "orders": {
+          "type": "ManyToOne",
+          "entity": "Orders"
+        },
+        "pack_products": {
+          "type": "OneToMany",
+          "entity": "PackProducts"
+        }
+      }
+    },
+    {
+      "name": "PackProducts",
+      "create_pagination_route": true,
+      "create_relation_get_route": false,
+      "properties": {
+        "quantity": {
+          "type": "int4",
+          "required": true
+        }
+      },
+      "relations": {
+        "product_id": {
+          "type": "ManyToOne",
+          "entity": "Products"
+        },
+        "custom_pack_id": {
+          "type": "ManyToOne",
+          "entity": "CustomPacks"
+        },
+        "solution_pack_id": {
+          "type": "ManyToOne",
+          "entity": "SolutionPacks"
+        }
+      }
+    },
+    {
+      "name": "CustomPacks",
+      "create_pagination_route": true,
+      "create_relation_get_route": true,
+      "properties": {
+        "slug": {
+          "type": "varchar",
+          "required": true
+        },
+        "name": {
+          "type": "varchar",
+          "required": true
+        },
+        "description": {
+          "type": "text"
+        },
+        "price": {
+          "type": "double precision",
+          "required": true
+        },
+        "explanations": {
+          "type": "jsonb"
+        }
+      },
+      "relations": {
+        "user_id": {
+          "type": "ManyToOne",
+          "entity": "User",
+          "required": true
+        },
+        "quiz_answer_id": {
+          "type": "ManyToOne",
+          "entity": "QuizAnswers",
+          "required": false
+        },
+        "orders": {
+          "type": "OneToMany",
+          "entity": "Orders"
+        },
+        "pack_products": {
+          "type": "OneToMany",
+          "entity": "PackProducts"
+        }
+      }
+    },
+    {
+      "name": "Orders",
+      "create_pagination_route": true,
+      "create_relation_get_route": true,
+      "properties": {
+        "stripe_session_id": {
+          "type": "varchar",
+          "required": true
+        },
+        "is_subscription": {
+          "type": "boolean",
+          "default": false
+        },
+        "status": {
+          "type": "varchar",
+          "default": "pending"
+        }
+      },
+      "relations": {
+        "user_id": {
+          "type": "ManyToOne",
+          "entity": "User",
+          "required": true
+        },
+        "custom_packs": {
+          "type": "OneToMany",
+          "entity": "CustomPacks",
+          "required": false
+        },
+        "solution_packs": {
+          "type": "OneToMany",
+          "entity": "SolutionPacks",
+          "required": false
+        }
+      }
+    },
+    {
+      "name": "Questions",
+      "create_pagination_route": true,
+      "create_relation_get_route": false,
+      "properties": {
+        "text": {
+          "type": "text",
+          "required": true
+        },
+        "order": {
+          "type": "int4",
+          "required": true
+        },
+        "answer_type": {
+          "type": "varchar",
+          "required": true
+        },
+        "required": {
+          "type": "boolean",
+          "default": true
+        }
+      },
+      "relations": {
+        "answers": {
+          "type": "OneToMany",
+          "entity": "Answers"
+        }
+      }
+    },
+    {
+      "name": "Answers",
+      "create_pagination_route": true,
+      "create_relation_get_route": false,
+      "properties": {
+        "text": {
+          "type": "text",
+          "required": true
+        },
+        "value": {
+          "type": "varchar"
+        }
+      },
+      "relations": {
+        "question_id": {
+          "type": "ManyToOne",
+          "entity": "Questions",
+          "required": true
+        },
+        "user_quiz_answers": {
+          "type": "ManyToOne",
+          "entity": "UserQuizAnswers",
+          "required": true
+        }
+      }
+    },
+    {
+      "name": "UserQuiz",
+      "create_pagination_route": true,
+      "create_relation_get_route": true,
+      "properties": {
+        "started_at": {
+          "type": "timestamp",
+          "required": true
+        },
+        "completed_at": {
+          "type": "timestamp"
+        }
+      },
+      "relations": {
+        "user_id": {
+          "type": "ManyToOne",
+          "entity": "User",
+          "required": true
+        },
+        "user_quiz_answers": {
+          "type": "OneToMany",
+          "entity": "UserQuizAnswers",
+          "required": true
+        }
+      }
+    },
+    {
+      "name": "UserQuizAnswers",
+      "create_pagination_route": false,
+      "create_relation_get_route": false,
+      "properties": {
+        "answer_value": {
+          "type": "varchar",
+          "required": false
+        },
+        "selected_answer_ids": {
+          "type": "jsonb",
+          "required": false
+        },
+        "metadata": {
+          "type": "jsonb",
+          "required": false
+        }
+      },
+      "relations": {
+        "user_quiz_id": {
+          "type": "ManyToOne",
+          "entity": "UserQuiz",
+          "required": true
+        },
+        "question_id": {
+          "type": "ManyToOne",
+          "entity": "Questions",
+          "required": true
+        },
+        "answer_id": {
+          "type": "ManyToOne",
+          "entity": "Answers",
+          "required": false
+        }
+      }
+    }
+  ]
+}

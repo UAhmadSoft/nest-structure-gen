@@ -1,32 +1,251 @@
 {
-  "url": "D:/Projects/Node/liberty-nest-js/src",
   "char_primary_key": false,
+  "controller_module_file": "D:/Projects/health-sync-api/src/infrastructure/controllers/controller.module.ts",
+  "entity_module_file": "D:/Projects/health-sync-api/src/infrastructure/entities/db.ts",
   "insert_to_modules": false,
-  "entity_module_file": "D:/Projects/Node/liberty-nest-js/src/infrastructure/entities/db.ts",
-  "repository_module_file": "D:/Projects/Node/liberty-nest-js/src/infrastructure/repository/repository.module.ts",
-  "usecase_module_file": "D:/Projects/Node/liberty-nest-js/src/usecases/usecase.module.ts",
-  "controller_module_file": "D:/Projects/Node/liberty-nest-js/src/infrastructure/controllers/controller.module.ts",
+  "repository_module_file": "D:/Projects/health-sync-api/src/infrastructure/repository/repository.module.ts",
   "tables": [
     {
-      "name": "ActiveWallets",
-      "create_pagination_route": false,
+      "name": "QuizAnswers",
+      "create_pagination_route": true,
       "create_relation_get_route": true,
       "properties": {
-        "status": {
-          "type": "varchar",
-          "default": "'active'"
+        "answers_json": { "type": "jsonb", "required": true },
+        "gpt_response_json": { "type": "jsonb", "required": false }
+      },
+      "relations": {
+        "user_id": { "type": "ManyToOne", "entity": "User", "required": true },
+        "custom_packs": {
+          "type": "OneToMany",
+          "entity": "CustomPacks",
+          "required": false
+        }
+      }
+    },
+    {
+      "name": "Products",
+      "create_pagination_route": true,
+      "create_relation_get_route": false,
+      "properties": {
+        "name": { "type": "varchar", "required": true },
+        "description": { "type": "text", "required": false },
+        "metadata": { "type": "jsonb", "required": false }
+      },
+      "relations": {
+        "pack_products": {
+          "type": "OneToMany",
+          "entity": "PackProducts",
+          "required": false
+        }
+      }
+    },
+    {
+      "name": "SolutionPacks",
+      "create_pagination_route": true,
+      "create_relation_get_route": false,
+      "properties": {
+        "name": { "type": "varchar", "required": true },
+        "description": { "type": "text", "required": false },
+        "price": { "type": "double precision", "required": true },
+        "slug": { "type": "varchar", "required": true }
+      },
+      "relations": {
+        "pack_products": {
+          "type": "OneToMany",
+          "entity": "PackProducts",
+          "required": false
         },
-        "process_type": {
-          "type": "varchar"
+        "order_items": {
+          "type": "OneToMany",
+          "entity": "OrderItems",
+          "required": false
+        }
+      }
+    },
+    {
+      "name": "PackProducts",
+      "create_pagination_route": true,
+      "create_relation_get_route": false,
+      "properties": {
+        "position": { "type": "int", "required": true }
+      },
+      "relations": {
+        "product_id": {
+          "type": "ManyToOne",
+          "entity": "Products",
+          "required": true
+        },
+        "custom_pack_id": {
+          "type": "ManyToOne",
+          "entity": "CustomPacks",
+          "required": true
+        },
+        "solution_pack_id": {
+          "type": "ManyToOne",
+          "entity": "SolutionPacks",
+          "required": false
+        }
+      }
+    },
+    {
+      "name": "CustomPacks",
+      "create_pagination_route": true,
+      "create_relation_get_route": true,
+      "properties": {
+        "name": { "type": "varchar", "required": true },
+        "description": { "type": "text", "required": false },
+        "price": { "type": "double precision", "required": true },
+        "slug": { "type": "varchar", "required": true },
+        "explanations": { "type": "jsonb", "required": false }
+      },
+      "relations": {
+        "user_id": { "type": "ManyToOne", "entity": "User", "required": true },
+        "quiz_answer_id": {
+          "type": "ManyToOne",
+          "entity": "QuizAnswers",
+          "required": false
+        },
+        "pack_products": {
+          "type": "OneToMany",
+          "entity": "PackProducts",
+          "required": false
+        },
+        "order_items": {
+          "type": "OneToMany",
+          "entity": "OrderItems",
+          "required": false
+        }
+      }
+    },
+    {
+      "name": "Orders",
+      "create_pagination_route": true,
+      "create_relation_get_route": true,
+      "properties": {
+        "stripe_session_id": { "type": "varchar", "required": true },
+        "is_subscription": { "type": "boolean", "default": false },
+        "status": { "type": "varchar", "default": "pending" }
+      },
+      "relations": {
+        "user_id": { "type": "ManyToOne", "entity": "User", "required": true },
+        "order_items": {
+          "type": "OneToMany",
+          "entity": "OrderItems",
+          "required": false
+        }
+      }
+    },
+    {
+      "name": "Questions",
+      "create_pagination_route": true,
+      "create_relation_get_route": false,
+      "properties": {
+        "text": { "type": "varchar", "required": true }
+      },
+      "relations": {
+        "answers": {
+          "type": "OneToMany",
+          "entity": "Answers",
+          "required": false
+        }
+      }
+    },
+    {
+      "name": "Answers",
+      "create_pagination_route": true,
+      "create_relation_get_route": false,
+      "properties": {
+        "text": { "type": "varchar", "required": true }
+      },
+      "relations": {
+        "question_id": {
+          "type": "ManyToOne",
+          "entity": "Questions",
+          "required": true
+        },
+        "user_quiz_answers": {
+          "type": "OneToMany",
+          "entity": "UserQuizAnswers",
+          "required": false
+        }
+      }
+    },
+    {
+      "name": "UserQuiz",
+      "create_pagination_route": true,
+      "create_relation_get_route": true,
+      "properties": {
+        "started_at": {
+          "type": "timestamp without time zone",
+          "required": true
+        },
+        "completed_at": {
+          "type": "timestamp without time zone",
+          "required": false
         }
       },
       "relations": {
-        "user_wallet_id": {
-          "type": "ManyToOne",
-          "entity": "UserWallet",
+        "user_id": { "type": "ManyToOne", "entity": "User", "required": true },
+        "user_quiz_answers": {
+          "type": "OneToMany",
+          "entity": "UserQuizAnswers",
           "required": true
         }
       }
+    },
+    {
+      "name": "UserQuizAnswers",
+      "create_pagination_route": false,
+      "create_relation_get_route": false,
+      "properties": {
+        "answer_value": { "type": "varchar", "required": false },
+        "metadata": { "type": "jsonb", "required": false },
+        "selected_answer_ids": { "type": "jsonb", "required": false }
+      },
+      "relations": {
+        "user_quiz_id": {
+          "type": "ManyToOne",
+          "entity": "UserQuiz",
+          "required": true
+        },
+        "question_id": {
+          "type": "ManyToOne",
+          "entity": "Questions",
+          "required": true
+        },
+        "answer_id": {
+          "type": "ManyToOne",
+          "entity": "Answers",
+          "required": false
+        }
+      }
+    },
+    {
+      "name": "OrderItems",
+      "create_pagination_route": true,
+      "create_relation_get_route": false,
+      "properties": {
+        "quantity": { "type": "int", "required": true }
+      },
+      "relations": {
+        "order_id": {
+          "type": "ManyToOne",
+          "entity": "Orders",
+          "required": true
+        },
+        "custom_pack_id": {
+          "type": "ManyToOne",
+          "entity": "CustomPacks",
+          "required": false
+        },
+        "solution_pack_id": {
+          "type": "ManyToOne",
+          "entity": "SolutionPacks",
+          "required": false
+        }
+      }
     }
-  ]
+  ],
+  "url": "D:/Projects/health-sync-api/src",
+  "usecase_module_file": "D:/Projects/health-sync-api/src/usecases/usecase.module.ts"
 }

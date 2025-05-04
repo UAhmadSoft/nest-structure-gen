@@ -103,7 +103,7 @@ class NestjsResourceGenerator {
     switch (relation.type) {
       case 'OneToMany':
         return `
-          @OneToMany(() => ${relatedClassName}, (${relation_field_name}) => ${relation_field_name}.${toSnakeCase(this.getCamelCase(entityName))}_id, {
+          @OneToMany(() => ${relatedClassName}, (${relation_field_name}) => ${relation_field_name}.${toSnakeCase(this.getCamelCase(entityName))}, {
             onDelete: 'NO ACTION',
             onUpdate: 'NO ACTION',
           })
@@ -191,13 +191,6 @@ class NestjsResourceGenerator {
         JoinColumn
       } from 'typeorm';
 
-       ${Object.entries(table.relations).map(([key, rel]) => {
-      // Skip import if it's self-referencing (entity importing itself)
-      if ((rel.entity || key) === table.name) {
-        return '';
-      }
-      return `import { ${this.getEntityClassName(rel.entity || key)} } from './${this.getEntityFileName(rel.entity || key).replace('.ts', '')}';`
-    }).filter(Boolean).join('\n')}
 
       @Entity('${tableName}')
       export class ${entityClassName} {
@@ -575,9 +568,7 @@ class NestjsResourceGenerator {
   generateModel(table) {
     const entityName = this.getPascalCase(table.name);
     const template = `
-    ${Object.entries(table.relations).map(([key, rel]) => `
-      import { ${this.getEntityClassName(rel.entity || key)} } from '../../infrastructure/entities/${(rel.entity || key).toLowerCase()}.entity';
-    `).join('\n')}
+   
 
     // Base model for creating a ${entityName}
     export class ${entityName}Model {
@@ -602,7 +593,7 @@ class NestjsResourceGenerator {
       ${Object.entries(table.relations).map(([key, rel]) => {
       if (rel.type === 'ManyToOne') {
         return `${this.toSnakeCase(key)}${rel.required === true ? "" : "?"}: number` +
-          `\n${this.toSnakeCase(key).replace("_id", "Data")}${rel.required === true ? "" : "?"}: ${this.getEntityClassName(rel.entity || key)};
+          `\n${this.getCamelCase(key).replace("Id", "Data")}${rel.required === true ? "" : "?"}: ${this.getEntityClassName(rel.entity || key)};
         `;
       } else if (rel.type === 'OneToMany') {
         return `${this.getCamelCase(this.getPlural(key))}?: ${this.getEntityClassName(rel.entity || key)}[];`;
