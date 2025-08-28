@@ -14,70 +14,70 @@
       "properties": {
         "email": {
           "type": "varchar",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "password": {
           "type": "varchar",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "signup_otp": {
           "type": "int",
-          "nullable": true,
+          "required": false,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "signup_otp_expiry": {
           "type": "timestamptz",
-          "nullable": true,
+          "required": false,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "forget_otp": {
           "type": "int",
-          "nullable": true,
+          "required": false,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "forget_otp_expiry": {
           "type": "timestamptz",
-          "nullable": true,
+          "required": false,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "account_type": {
           "type": "varchar",
-          "nullable": true,
+          "required": false,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "is_social_login": {
           "type": "boolean",
-          "nullable": false,
+          "required": true,
           "default": "false",
           "length": null,
           "unsigned": false
         },
         "is_active": {
           "type": "boolean",
-          "nullable": false,
+          "required": true,
           "default": "false",
           "length": null,
           "unsigned": false
         },
         "social_type": {
           "type": "varchar",
-          "nullable": true,
+          "required": false,
           "default": null,
           "length": null,
           "unsigned": false
@@ -147,14 +147,14 @@
       "properties": {
         "message": {
           "type": "varchar",
-          "nullable": true,
+          "required": false,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "rating": {
           "type": "int",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
@@ -175,35 +175,35 @@
       "properties": {
         "message": {
           "type": "varchar",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "resource_title": {
           "type": "varchar",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "resource_id": {
           "type": "int",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "is_read": {
           "type": "varchar",
-          "nullable": false,
+          "required": true,
           "default": "false",
           "length": null,
           "unsigned": false
         },
         "image": {
           "type": "varchar",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
@@ -220,28 +220,28 @@
       "properties": {
         "first_name": {
           "type": "varchar",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "last_name": {
           "type": "varchar",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "title": {
           "type": "varchar",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "message": {
           "type": "varchar",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
@@ -256,14 +256,14 @@
       "properties": {
         "day": {
           "type": "varchar",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "time_slot": {
           "type": "timestamptz",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
@@ -284,28 +284,28 @@
       "properties": {
         "first_name": {
           "type": "varchar",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "last_name": {
           "type": "varchar",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "phone_number": {
           "type": "varchar",
-          "nullable": true,
+          "required": false,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "secondary_email": {
           "type": "varchar",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
@@ -326,161 +326,161 @@
       "properties": {
         "pricing_type": {
           "type": "varchar",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "pricing": {
           "type": "int",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "company_name": {
           "type": "varchar",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "title": {
           "type": "varchar",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "license_no": {
           "type": "varchar",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "expiration_date": {
           "type": "timestamptz",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "country": {
           "type": "varchar",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "state": {
           "type": "varchar",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "portfolio_link": {
           "type": "varchar",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "testmonial_link": {
           "type": "varchar",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "experience": {
           "type": "int",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "languages": {
           "type": "varchar",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "degree": {
           "type": "varchar",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "college_name": {
           "type": "varchar",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "specialization": {
           "type": "varchar",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "started_on": {
           "type": "timestamptz",
-          "nullable": true,
+          "required": false,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "graduated_on": {
           "type": "timestamptz",
-          "nullable": true,
+          "required": false,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "awards": {
           "type": "varchar",
-          "nullable": true,
+          "required": false,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "literary_works": {
           "type": "varchar",
-          "nullable": true,
+          "required": false,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "books_authorship": {
           "type": "varchar",
-          "nullable": true,
+          "required": false,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "certificate_title": {
           "type": "varchar",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "institute_name": {
           "type": "varchar",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "approach": {
           "type": "varchar",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
@@ -501,7 +501,7 @@
       "properties": {
         "color": {
           "type": "varchar",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
@@ -532,28 +532,28 @@
       "properties": {
         "text": {
           "type": "varchar",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "is_read": {
           "type": "boolean",
-          "nullable": false,
+          "required": true,
           "default": "false",
           "length": null,
           "unsigned": false
         },
         "attachment": {
           "type": "varchar",
-          "nullable": true,
+          "required": false,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "attachment_type": {
           "type": "varchar",
-          "nullable": true,
+          "required": false,
           "default": null,
           "length": null,
           "unsigned": false
@@ -579,28 +579,28 @@
       "properties": {
         "start_time": {
           "type": "timestamptz",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "end_time": {
           "type": "timestamptz",
-          "nullable": true,
+          "required": false,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "status": {
           "type": "varchar",
-          "nullable": false,
+          "required": true,
           "default": "pending",
           "length": null,
           "unsigned": false
         },
         "duration": {
           "type": "int",
-          "nullable": true,
+          "required": false,
           "default": null,
           "length": null,
           "unsigned": false
@@ -631,7 +631,7 @@
       "properties": {
         "note": {
           "type": "varchar",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
@@ -652,21 +652,21 @@
       "properties": {
         "mood": {
           "type": "varchar",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "description": {
           "type": "varchar",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "audio": {
           "type": "varchar",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
@@ -693,35 +693,35 @@
       "properties": {
         "title": {
           "type": "varchar",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "description": {
           "type": "varchar",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "category": {
           "type": "varchar",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "deadline": {
           "type": "timestamptz",
-          "nullable": true,
+          "required": false,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "reminder": {
           "type": "boolean",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
@@ -747,28 +747,28 @@
       "properties": {
         "titkle": {
           "type": "varchar",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "description": {
           "type": "varchar",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "deadline": {
           "type": "timestamptz",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "is_complete": {
           "type": "boolean",
-          "nullable": false,
+          "required": true,
           "default": "false",
           "length": null,
           "unsigned": false
@@ -789,21 +789,21 @@
       "properties": {
         "title": {
           "type": "varchar",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "image": {
           "type": "varchar",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "description": {
           "type": "varchar",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
@@ -842,7 +842,7 @@
       "properties": {
         "balance": {
           "type": "float",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
@@ -863,63 +863,63 @@
       "properties": {
         "transaction_id": {
           "type": "varchar",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "tax": {
           "type": "float",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "total": {
           "type": "float",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "card_name": {
           "type": "varchar",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "card_number": {
           "type": "varchar",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "amount": {
           "type": "float",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "status": {
           "type": "varchar",
-          "nullable": false,
+          "required": true,
           "default": "pending",
           "length": null,
           "unsigned": false
         },
         "transaction_type": {
           "type": "varchar",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "column": {
           "type": "float",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
@@ -963,14 +963,14 @@
       "properties": {
         "title": {
           "type": "varchar",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "is_active": {
           "type": "boolean",
-          "nullable": false,
+          "required": true,
           "default": "true",
           "length": null,
           "unsigned": false
@@ -991,21 +991,21 @@
       "properties": {
         "time_from": {
           "type": "timestamptz",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "time_to": {
           "type": "timestamptz",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
         },
         "status": {
           "type": "varchar",
-          "nullable": false,
+          "required": true,
           "default": null,
           "length": null,
           "unsigned": false
@@ -1071,7 +1071,7 @@
         "status": {
           "type": "varchar",
           "default": "pending",
-          "nullable": true
+          "required": false
         }
       },
       "relations": {}

@@ -14,128 +14,128 @@
       "properties": {
         "deposit_structure": {
           "type": "varchar",
-          "nullable": true
+          "required": false
         },
         "listing_type": {
           "type": "varchar",
-          "nullable": true
+          "required": false
         },
         "available_plans_dynamic": {
           "type": "int",
-          "nullable": true,
+          "required": false,
           "default": 0
         },
         "selling_status": {
           "type": "varchar",
-          "nullable": true
+          "required": false
         },
         "neighbourhood_avg_ppf": {
           "type": "int",
-          "nullable": true,
+          "required": false,
           "default": 0
         },
         "construction_status": {
           "type": "varchar",
-          "nullable": true
+          "required": false
         },
         "architects": {
           "type": "varchar",
-          "nullable": true
+          "required": false
         },
         "postal_code": {
           "type": "varchar",
-          "nullable": true
+          "required": false
         },
         "building_maint_fee": {
           "type": "double precision",
-          "nullable": true,
+          "required": false,
           "default": 0
         },
         "selling_category": {
           "type": "varchar",
-          "nullable": true
+          "required": false
         },
         "district": {
           "type": "varchar",
-          "nullable": true
+          "required": false
         },
         "transit_score": {
           "type": "double precision",
-          "nullable": true,
+          "required": false,
           "default": 0
         },
         "latitude": {
           "type": "double precision",
-          "nullable": true,
+          "required": false,
           "default": 0
         },
         "longitude": {
           "type": "double precision",
-          "nullable": true,
+          "required": false,
           "default": 0
         },
         "parking_cost": {
           "type": "double precision",
-          "nullable": true,
+          "required": false,
           "default": 0
         },
         "bedroom_types": {
           "type": "varchar",
-          "nullable": true
+          "required": false
         },
         "intersection": {
           "type": "varchar",
-          "nullable": true
+          "required": false
         },
         "city": {
           "type": "varchar",
-          "nullable": true
+          "required": false
         },
         "unit_size_from_sqft": {
           "type": "double precision",
-          "nullable": true,
+          "required": false,
           "default": 0
         },
         "unit_size_to_sqft": {
           "type": "double precision",
-          "nullable": true,
+          "required": false,
           "default": 0
         },
         "price_per_sq_ft_from": {
           "type": "double precision",
-          "nullable": true,
+          "required": false,
           "default": 0
         },
         "price_per_sq_ft_to": {
           "type": "double precision",
-          "nullable": true,
+          "required": false,
           "default": 0
         },
         "keywords": {
           "type": "varchar",
-          "nullable": true
+          "required": false
         },
         "project_title": {
           "type": "varchar",
-          "nullable": true
+          "required": false
         },
         "total_floor_plans": {
           "type": "int",
-          "nullable": true,
+          "required": false,
           "default": 0
         },
         "property_type": {
           "type": "varchar",
-          "nullable": true
+          "required": false
         },
         "walk_score": {
           "type": "double precision",
-          "nullable": true,
+          "required": false,
           "default": 0
         },
         "city_average_ppf": {
           "type": "int",
-          "nullable": true,
+          "required": false,
           "default": 0
         },
         "sales_price_from": {
@@ -144,39 +144,39 @@
         },
         "sales_price_to": {
           "type": "double precision",
-          "nullable": true,
+          "required": false,
           "default": 0
         },
         "occupancy": {
           "type": "varchar",
-          "nullable": true
+          "required": false
         },
         "tags": {
           "type": "varchar",
-          "nullable": true
+          "required": false
         },
         "project_development_name": {
           "type": "varchar",
-          "nullable": true
+          "required": false
         },
         "bedroom_from": {
           "type": "int",
-          "nullable": true,
+          "required": false,
           "default": 0
         },
         "height_ft": {
           "type": "double precision",
-          "nullable": true,
+          "required": false,
           "default": 0
         },
         "height_m": {
           "type": "double precision",
-          "nullable": true,
+          "required": false,
           "default": 0
         },
         "address": {
           "type": "varchar",
-          "nullable": true
+          "required": false
         }
       },
       "relations": {
@@ -195,51 +195,51 @@
       "properties": {
         "interior_designers": {
           "type": "varchar",
-          "nullable": true
+          "required": false
         },
         "est_property_tax": {
           "type": "double precision",
-          "nullable": true
+          "required": false
         },
         "complete_package_url": {
           "type": "varchar",
-          "nullable": true
+          "required": false
         },
         "amenities": {
           "type": "varchar",
-          "nullable": true
+          "required": false
         },
         "sales_company": {
           "type": "varchar",
-          "nullable": true
+          "required": false
         },
         "no_of_stories": {
           "type": "int",
-          "nullable": true
+          "required": false
         },
         "ceilings_from": {
           "type": "double precision",
-          "nullable": true
+          "required": false
         },
         "ceilings_to": {
           "type": "double precision",
-          "nullable": true
+          "required": false
         },
         "neighbourhood": {
           "type": "varchar",
-          "nullable": true
+          "required": false
         },
         "locker_cost": {
           "type": "double precision",
-          "nullable": true
+          "required": false
         },
         "video": {
           "type": "varchar",
-          "nullable": true
+          "required": false
         },
         "description": {
           "type": "varchar",
-          "nullable": true
+          "required": false
         }
       },
       "relations": {
@@ -258,95 +258,95 @@
       "properties": {
         "bicycle_locker_cost": {
           "type": "double precision",
-          "nullable": true
+          "required": false
         },
         "meta_description": {
           "type": "varchar",
-          "nullable": true
+          "required": false
         },
         "bicycle_locker_maint_fee": {
           "type": "double precision",
-          "nullable": true
+          "required": false
         },
         "marketing_company": {
           "type": "varchar",
-          "nullable": true
+          "required": false
         },
         "bedroom_to": {
           "type": "int",
-          "nullable": true
+          "required": false
         },
         "percent_sold_backend_only": {
           "type": "double precision",
-          "nullable": true
+          "required": false
         },
         "locker_maint_fee": {
           "type": "double precision",
-          "nullable": true
+          "required": false
         },
         "rebate": {
           "type": "double precision",
-          "nullable": true
+          "required": false
         },
         "last_updated_date": {
           "type": "varchar",
-          "nullable": true
+          "required": false
         },
         "sales_office_location": {
           "type": "varchar",
-          "nullable": true
+          "required": false
         },
         "rebate_percentage": {
           "type": "varchar",
-          "nullable": true
+          "required": false
         },
         "price_per_square_foot_avg": {
           "type": "double precision",
-          "nullable": true
+          "required": false
         },
         "construction_start_date": {
           "type": "varchar",
-          "nullable": true
+          "required": false
         },
         "sales_office_phone": {
           "type": "varchar",
-          "nullable": true
+          "required": false
         },
         "finishes": {
           "type": "varchar",
-          "nullable": true
+          "required": false
         },
         "no_of_units": {
           "type": "int",
-          "nullable": true
+          "required": false
         },
         "about_project": {
           "type": "varchar",
-          "nullable": true
+          "required": false
         },
         "current_incentives": {
           "type": "varchar",
-          "nullable": true
+          "required": false
         },
         "sales_started": {
           "type": "varchar",
-          "nullable": true
+          "required": false
         },
         "parking_maint_fee": {
           "type": "varchar",
-          "nullable": true
+          "required": false
         },
         "sales_office_email": {
           "type": "varchar",
-          "nullable": true
+          "required": false
         },
         "province_name": {
           "type": "varchar",
-          "nullable": true
+          "required": false
         },
         "bank_draft_info": {
           "type": "varchar",
-          "nullable": true
+          "required": false
         }
       },
       "relations": {
@@ -365,108 +365,108 @@
       "properties": {
         "list_price": {
           "type": "double precision",
-          "nullable": true,
+          "required": false,
           "default": 0
         },
         "property_type": {
           "type": "varchar",
-          "nullable": true
+          "required": false
         },
         "property_sub_type": {
           "type": "varchar",
-          "nullable": true
+          "required": false
         },
         "standard_status": {
           "type": "varchar",
-          "nullable": true
+          "required": false
         },
         "city": {
           "type": "varchar",
-          "nullable": true
+          "required": false
         },
         "city_region": {
           "type": "varchar",
-          "nullable": true
+          "required": false
         },
         "postal_code": {
           "type": "varchar",
-          "nullable": true
+          "required": false
         },
         "street_number": {
           "type": "varchar",
-          "nullable": true
+          "required": false
         },
         "street_name": {
           "type": "varchar",
-          "nullable": true
+          "required": false
         },
         "unit_number": {
           "type": "varchar",
-          "nullable": true
+          "required": false
         },
         "bedrooms_total": {
           "type": "int",
-          "nullable": true,
+          "required": false,
           "default": 0
         },
         "bathrooms_total": {
           "type": "int",
-          "nullable": true,
+          "required": false,
           "default": 0
         },
         "parking_total": {
           "type": "double precision",
-          "nullable": true,
+          "required": false,
           "default": 0
         },
         "building_area_total": {
           "type": "double precision",
-          "nullable": true,
+          "required": false,
           "default": 0
         },
         "association_fee": {
           "type": "double precision",
-          "nullable": true,
+          "required": false,
           "default": 0
         },
         "balcony_type": {
           "type": "varchar",
-          "nullable": true
+          "required": false
         },
         "exposure": {
           "type": "varchar",
-          "nullable": true
+          "required": false
         },
         "garage_type": {
           "type": "varchar",
-          "nullable": true
+          "required": false
         },
         "tax_annual_amount": {
           "type": "double precision",
-          "nullable": true,
+          "required": false,
           "default": 0
         },
         "public_remarks": {
           "type": "text",
-          "nullable": true
+          "required": false
         },
         "occupant_type": {
           "type": "varchar",
-          "nullable": true
+          "required": false
         },
         "property_features": {
           "type": "text",
           "array": true,
-          "nullable": true
+          "required": false
         },
         "latitude": {
           "type": "double precision",
-          "nullable": true,
+          "required": false,
           "default": 0
         },
         "longitude": {
           "type": "double precision",
-          "nullable": true,
+          "required": false,
           "default": 0
         }
       },
@@ -487,53 +487,53 @@
         "association_amenities": {
           "type": "text",
           "array": true,
-          "nullable": true
+          "required": false
         },
         "association_fee_includes": {
           "type": "text",
           "array": true,
-          "nullable": true
+          "required": false
         },
         "construction_materials": {
           "type": "text",
           "array": true,
-          "nullable": true
+          "required": false
         },
         "cooling": {
           "type": "text",
           "array": true,
-          "nullable": true
+          "required": false
         },
         "heating_yn": {
           "type": "boolean",
-          "nullable": true
+          "required": false
         },
         "heat_source": {
           "type": "varchar",
-          "nullable": true
+          "required": false
         },
         "heat_type": {
           "type": "varchar",
-          "nullable": true
+          "required": false
         },
         "architectural_style": {
           "type": "text",
           "array": true,
-          "nullable": true
+          "required": false
         },
         "basement": {
           "type": "text",
           "array": true,
-          "nullable": true
+          "required": false
         },
         "building_name": {
           "type": "varchar",
-          "nullable": true
+          "required": false
         },
         "laundry_features": {
           "type": "text",
           "array": true,
-          "nullable": true
+          "required": false
         }
       },
       "relations": {
@@ -552,51 +552,51 @@
       "properties": {
         "list_office_name": {
           "type": "varchar",
-          "nullable": true
+          "required": false
         },
         "virtual_tour_url": {
           "type": "varchar",
-          "nullable": true
+          "required": false
         },
         "possession_details": {
           "type": "varchar",
-          "nullable": true
+          "required": false
         },
         "original_entry_timestamp": {
           "type": "timestamp",
-          "nullable": true
+          "required": false
         },
         "modification_timestamp": {
           "type": "timestamp",
-          "nullable": true
+          "required": false
         },
         "media_change_timestamp": {
           "type": "timestamp",
-          "nullable": true
+          "required": false
         },
         "photos_change_timestamp": {
           "type": "timestamp",
-          "nullable": true
+          "required": false
         },
         "condo_corp_number": {
           "type": "int",
-          "nullable": true
+          "required": false
         },
         "vendor_property_info_statement": {
           "type": "boolean",
-          "nullable": true
+          "required": false
         },
         "property_attached_yn": {
           "type": "boolean",
-          "nullable": true
+          "required": false
         },
         "property_management_company": {
           "type": "varchar",
-          "nullable": true
+          "required": false
         },
         "association_name": {
           "type": "varchar",
-          "nullable": true
+          "required": false
         }
       },
       "relations": {
