@@ -244,7 +244,7 @@ class NestjsResourceGenerator {
 
       export class Create${entityName}Dto {
         ${Object.entries(table.properties).map(([key, prop]) => `
-          ${prop.nullable === true ? '@IsOptional()' : '@IsNotEmpty()'}
+          ${prop.required === false ? '@IsOptional()' : '@IsNotEmpty()'}
           ${this.getPropTypeValidator(prop.type)}
           @ApiProperty({ required: ${prop.required === false ? false : true} })
           ${key}: ${this.getTypeScriptType(prop.type)};
@@ -573,7 +573,7 @@ class NestjsResourceGenerator {
     // Base model for creating a ${entityName}
     export class ${entityName}Model {
       ${Object.entries(table.properties).map(([key, prop]) => `
-        ${key}${prop.nullable === true ? "?" : ""}: ${this.getTypeScriptType(prop.type)};`).join('')}
+        ${key}${prop.required === false ? "?" : ""}: ${this.getTypeScriptType(prop.type)};`).join('')}
       ${Object.entries(table.relations).map(([key, rel]) => {
       if (rel.type === 'ManyToOne') {
         return `${this.toSnakeCase(key)}: number;`;
@@ -648,7 +648,7 @@ class NestjsResourceGenerator {
                 {
                   name: '${key}',
                   type: '${prop.type}',
-                  ${prop.nullable === true ? 'isNullable: true,' : ''}
+                  ${prop.required === false ? 'isNullable: true,' : ''}
                   ${prop.default ? `default: ` + (prop.type === 'varchar' || prop.type === 'text' ? `"'${prop.default}'"` : prop.default) + ',' : ''}
                 },
               `).join('\n')}
