@@ -103,7 +103,7 @@ class NestjsResourceGenerator {
     switch (relation.type) {
       case 'OneToMany':
         return `
-          @OneToMany(() => ${relatedClassName}, (${relation_field_name}) => ${relation_field_name}.${toSnakeCase(this.getCamelCase(entityName))}, {
+          @OneToMany(() => ${relatedClassName}, (${relation_field_name}) => ${relation_field_name}.${this.toSingle(toSnakeCase(this.getCamelCase(entityName)))}_id, {
             onDelete: 'NO ACTION',
             onUpdate: 'NO ACTION',
           })
