@@ -1,251 +1,191 @@
 {
   "char_primary_key": false,
-  "controller_module_file": "D:/Projects/health-sync-api/src/infrastructure/controllers/controller.module.ts",
-  "entity_module_file": "D:/Projects/health-sync-api/src/infrastructure/entities/db.ts",
+  "controller_module_file": "D:/projects/authar-quran-api/src/infrastructure/controllers/controller.module.ts",
+  "entity_module_file": "D:/projects/authar-quran-api/src/infrastructure/entities/db.ts",
   "insert_to_modules": false,
-  "repository_module_file": "D:/Projects/health-sync-api/src/infrastructure/repository/repository.module.ts",
+  "repository_module_file": "D:/projects/authar-quran-api/src/infrastructure/repository/repository.module.ts",
   "tables": [
     {
-      "name": "QuizAnswers",
+      "name": "Qurans",
+      "create_pagination_route": false,
+      "create_relation_get_route": true,
+      "properties": {
+        "name": {
+          "type": "varchar",
+          "required": true
+        },
+        "riwayah": {
+          "type": "varchar",
+          "required": true
+        },
+        "download_url": {
+          "type": "varchar",
+          "required": false
+        }
+      },
+      "relations": {
+        "surah": {
+          "type": "OneToMany",
+          "entity": "Surahs"
+        }
+      }
+    },
+    {
+      "name": "Surahs",
       "create_pagination_route": true,
       "create_relation_get_route": true,
       "properties": {
-        "answers_json": { "type": "jsonb", "required": true },
-        "gpt_response_json": { "type": "jsonb", "required": false }
-      },
-      "relations": {
-        "user_id": { "type": "ManyToOne", "entity": "User", "required": true },
-        "custom_packs": {
-          "type": "OneToMany",
-          "entity": "CustomPacks",
-          "required": false
-        }
-      }
-    },
-    {
-      "name": "Products",
-      "create_pagination_route": true,
-      "create_relation_get_route": false,
-      "properties": {
-        "name": { "type": "varchar", "required": true },
-        "description": { "type": "text", "required": false },
-        "metadata": { "type": "jsonb", "required": false }
-      },
-      "relations": {
-        "pack_products": {
-          "type": "OneToMany",
-          "entity": "PackProducts",
-          "required": false
-        }
-      }
-    },
-    {
-      "name": "SolutionPacks",
-      "create_pagination_route": true,
-      "create_relation_get_route": false,
-      "properties": {
-        "name": { "type": "varchar", "required": true },
-        "description": { "type": "text", "required": false },
-        "price": { "type": "double precision", "required": true },
-        "slug": { "type": "varchar", "required": true }
-      },
-      "relations": {
-        "pack_products": {
-          "type": "OneToMany",
-          "entity": "PackProducts",
-          "required": false
-        },
-        "order_items": {
-          "type": "OneToMany",
-          "entity": "OrderItems",
-          "required": false
-        }
-      }
-    },
-    {
-      "name": "PackProducts",
-      "create_pagination_route": true,
-      "create_relation_get_route": false,
-      "properties": {
-        "position": { "type": "int", "required": true }
-      },
-      "relations": {
-        "product_id": {
-          "type": "ManyToOne",
-          "entity": "Products",
+        "name": {
+          "type": "varchar",
           "required": true
         },
-        "custom_pack_id": {
-          "type": "ManyToOne",
-          "entity": "CustomPacks",
+        "type": {
+          "type": "varchar",
           "required": true
         },
-        "solution_pack_id": {
-          "type": "ManyToOne",
-          "entity": "SolutionPacks",
-          "required": false
-        }
-      }
-    },
-    {
-      "name": "CustomPacks",
-      "create_pagination_route": true,
-      "create_relation_get_route": true,
-      "properties": {
-        "name": { "type": "varchar", "required": true },
-        "description": { "type": "text", "required": false },
-        "price": { "type": "double precision", "required": true },
-        "slug": { "type": "varchar", "required": true },
-        "explanations": { "type": "jsonb", "required": false }
-      },
-      "relations": {
-        "user_id": { "type": "ManyToOne", "entity": "User", "required": true },
-        "quiz_answer_id": {
-          "type": "ManyToOne",
-          "entity": "QuizAnswers",
-          "required": false
-        },
-        "pack_products": {
-          "type": "OneToMany",
-          "entity": "PackProducts",
-          "required": false
-        },
-        "order_items": {
-          "type": "OneToMany",
-          "entity": "OrderItems",
-          "required": false
-        }
-      }
-    },
-    {
-      "name": "Orders",
-      "create_pagination_route": true,
-      "create_relation_get_route": true,
-      "properties": {
-        "stripe_session_id": { "type": "varchar", "required": true },
-        "is_subscription": { "type": "boolean", "default": false },
-        "status": { "type": "varchar", "default": "pending" }
-      },
-      "relations": {
-        "user_id": { "type": "ManyToOne", "entity": "User", "required": true },
-        "order_items": {
-          "type": "OneToMany",
-          "entity": "OrderItems",
-          "required": false
-        }
-      }
-    },
-    {
-      "name": "Questions",
-      "create_pagination_route": true,
-      "create_relation_get_route": false,
-      "properties": {
-        "text": { "type": "varchar", "required": true }
-      },
-      "relations": {
-        "answers": {
-          "type": "OneToMany",
-          "entity": "Answers",
-          "required": false
-        }
-      }
-    },
-    {
-      "name": "Answers",
-      "create_pagination_route": true,
-      "create_relation_get_route": false,
-      "properties": {
-        "text": { "type": "varchar", "required": true }
-      },
-      "relations": {
-        "question_id": {
-          "type": "ManyToOne",
-          "entity": "Questions",
+        "number_of_verses": {
+          "type": "int4",
           "required": true
         },
-        "user_quiz_answers": {
-          "type": "OneToMany",
-          "entity": "UserQuizAnswers",
-          "required": false
-        }
-      }
-    },
-    {
-      "name": "UserQuiz",
-      "create_pagination_route": true,
-      "create_relation_get_route": true,
-      "properties": {
-        "started_at": {
-          "type": "timestamp without time zone",
+        "en_name": {
+          "type": "varchar",
           "required": true
         },
-        "completed_at": {
-          "type": "timestamp without time zone",
+        "json_data": {
+          "type": "jsonb",
           "required": false
         }
       },
       "relations": {
-        "user_id": { "type": "ManyToOne", "entity": "User", "required": true },
-        "user_quiz_answers": {
-          "type": "OneToMany",
-          "entity": "UserQuizAnswers",
+        "quran_id": {
+          "type": "ManyToOne",
+          "entity": "Qurans",
           "required": true
+        },
+        "ayahs": {
+          "type": "OneToMany",
+          "entity": "Ayahs"
         }
       }
     },
     {
-      "name": "UserQuizAnswers",
+      "name": "Ayahs",
       "create_pagination_route": false,
       "create_relation_get_route": false,
       "properties": {
-        "answer_value": { "type": "varchar", "required": false },
-        "metadata": { "type": "jsonb", "required": false },
-        "selected_answer_ids": { "type": "jsonb", "required": false }
+        "text": {
+          "type": "text",
+          "required": true
+        },
+        "json_data": {
+          "type": "jsonb",
+          "required": true
+        },
+        "audio_url": {
+          "type": "varchar",
+          "required": false
+        },
+        "verse_number": {
+          "type": "int4",
+          "required": true
+        }
       },
       "relations": {
-        "user_quiz_id": {
+        "surah_id": {
           "type": "ManyToOne",
-          "entity": "UserQuiz",
+          "entity": "Surahs",
           "required": true
-        },
-        "question_id": {
-          "type": "ManyToOne",
-          "entity": "Questions",
-          "required": true
-        },
-        "answer_id": {
-          "type": "ManyToOne",
-          "entity": "Answers",
-          "required": false
         }
       }
     },
     {
-      "name": "OrderItems",
-      "create_pagination_route": true,
+      "name": "Tafsirs",
+      "create_pagination_route": false,
       "create_relation_get_route": false,
       "properties": {
-        "quantity": { "type": "int", "required": true }
-      },
-      "relations": {
-        "order_id": {
-          "type": "ManyToOne",
-          "entity": "Orders",
+        "slug": {
+          "type": "varchar",
           "required": true
         },
-        "custom_pack_id": {
-          "type": "ManyToOne",
-          "entity": "CustomPacks",
-          "required": false
+        "language": {
+          "type": "varchar",
+          "required": true
         },
-        "solution_pack_id": {
-          "type": "ManyToOne",
-          "entity": "SolutionPacks",
+        "display_name": {
+          "type": "text",
+          "required": true
+        },
+        "download_url": {
+          "type": "varchar",
           "required": false
+        }
+      },
+      "relations": {
+        "ayah_tafsirs": {
+          "type": "OneToMany",
+          "entity": "AyahTafsirs"
+        }
+      }
+    },
+    {
+      "name": "AyahTafsirs",
+      "create_pagination_route": false,
+      "create_relation_get_route": false,
+      "properties": {
+        "ayah_number": {
+          "type": "int4",
+          "required": true
+        },
+        "surah_number": {
+          "type": "int4",
+          "required": true
+        },
+        "text": {
+          "type": "text",
+          "required": true
+        },
+        "plain_text": {
+          "type": "text",
+          "required": false
+        }
+      },
+      "relations": {
+        "tafsir_id": {
+          "type": "ManyToOne",
+          "entity": "Tafsirs",
+          "required": true
+        }
+      }
+    },
+    {
+      "name": "AyahTafsirMappings",
+      "create_pagination_route": false,
+      "create_relation_get_route": false,
+      "properties": {},
+      "relations": {
+        "tafsir_id": {
+          "type": "ManyToOne",
+          "entity": "Tafsirs",
+          "required": true
+        },
+        "ayah_id": {
+          "type": "ManyToOne",
+          "entity": "Ayahs",
+          "required": true
+        },
+        "quran_id": {
+          "type": "ManyToOne",
+          "entity": "Qurans",
+          "required": true
+        },
+        "surah_id": {
+          "type": "ManyToOne",
+          "entity": "Surahs",
+          "required": true
         }
       }
     }
   ],
-  "url": "D:/Projects/health-sync-api/src",
-  "usecase_module_file": "D:/Projects/health-sync-api/src/usecases/usecase.module.ts"
+  "url": "D:/projects/authar-quran-api/src",
+  "usecase_module_file": "D:/projects/authar-quran-api/src/usecases/usecase.module.ts"
 }
