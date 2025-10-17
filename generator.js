@@ -198,7 +198,7 @@ class NestjsResourceGenerator {
         id: ${this.schema.char_primary_key ? 'string' : 'number'};
 
         ${Object.entries(table.properties).map(([key, prop]) => `
-          @Column({ type: '${prop.type}'${prop.required === false ? ', nullable: true' : ''} })
+          @Column({ type: '${prop.type}'${prop.required === false ? ', nullable: true' : ''}${prop.unique === true ? ', unique: true' : ''} })
           ${key}: ${this.getTypeScriptType(prop.type)};
         `).join('\n')}
 
