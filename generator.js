@@ -592,18 +592,14 @@ class NestjsResourceGenerator {
       updated_on: Date;
       ${Object.entries(table.relations).map(([key, rel]) => {
       if (rel.type === 'ManyToOne') {
-        return `${this.toSnakeCase(key)}${rel.required === true ? "" : "?"}: number` +
-          `\n${this.getCamelCase(key).replace("Id", "Data")}${rel.required === true ? "" : "?"}: ${this.getEntityClassName(rel.entity || key)};
-        `;
+        return `${this.getCamelCase(key).replace("Id", "Data")}${rel.required === true ? "" : "?"}: ${this.getEntityClassName(rel.entity || key)};`;
       } else if (rel.type === 'OneToMany') {
         return `${this.getCamelCase(this.getPlural(key))}?: ${this.getEntityClassName(rel.entity || key)}[];`;
-      }
-      else if (rel.type === 'OneToOne' && !rel.isOwner) {
-        return `${this.toSnakeCase(key).replace("_id", "Data")}${rel.required === true ? "" : "?"}: ${this.getEntityClassName(rel.entity || key)};
-        `;
+      } else if (rel.type === 'OneToOne' && !rel.isOwner) {
+        return `${this.toSnakeCase(key).replace("_id", "Data")}${rel.required === true ? "" : "?"}: ${this.getEntityClassName(rel.entity || key)};`;
       }
       return '';
-    }).filter(Boolean).join('')}
+    }).filter(Boolean).join('\n  ')}
     }
 
     // Model for updating ${entityName}
