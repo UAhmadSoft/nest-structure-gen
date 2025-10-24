@@ -2,7 +2,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const NestjsResourceGenerator = require('./generator');
+const NestjsResourceGenerator = require('./generator-new');
 
 // Check if schema.json exists in current directory
 const schemaPath = path.join(process.cwd(), 'schema.json');

@@ -1,7 +1,7 @@
 {
   "name": "clean-nest-generator",
-  "version": "1.0.11",
-  "description": "NestJS resource file generator",
+  "version": "2.0.0",
+  "description": "NestJS resource file generator with clean architecture",
   "main": "generator.js",
   "bin": {
     "clean-nest-generator": "./cli.js"
@@ -14,15 +14,15 @@
     "generator",
     "typescript",
     "resource",
-    "crud"
+    "crud",
+    "clean-architecture"
   ],
   "author": "your name",
   "license": "MIT",
   "dependencies": {
-    "dagre": "^0.8.5",
+    "chalk": "^4.1.2",
     "pluralize": "^8.0.0",
     "prettier": "^2.8.8",
-    "react-hotkeys-hook": "^4.6.1",
     "ts-morph": "^19.0.0",
     "typescript": "^5.0.0"
   },

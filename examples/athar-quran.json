@@ -1,0 +1,453 @@
+{
+  "char_primary_key": false,
+  "controller_module_file": "D:/projects/authar-quran-api/src/infrastructure/controllers/controller.module.ts",
+  "entity_module_file": "D:/projects/authar-quran-api/src/infrastructure/entities/db.ts",
+  "insert_to_modules": false,
+  "repository_module_file": "D:/projects/authar-quran-api/src/infrastructure/repository/repository.module.ts",
+  "url": "D:/projects/authar-quran-api/src",
+  "usecase_module_file": "D:/projects/authar-quran-api/src/usecases/usecase.module.ts",
+  "tables": [
+    {
+      "name": "Translations",
+      "create_pagination_route": false,
+      "create_relation_get_route": false,
+      "properties": {
+        "slug": {
+          "type": "varchar",
+          "required": true
+        },
+        "language": {
+          "type": "varchar",
+          "required": true
+        },
+        "display_name": {
+          "type": "text",
+          "required": true
+        },
+        "download_url": {
+          "type": "varchar",
+          "required": false
+        }
+      },
+      "relations": {
+        "ayah_translations": {
+          "type": "OneToMany",
+          "entity": "AyahTranslations"
+        }
+      }
+    },
+    {
+      "name": "AyahTranslations",
+      "create_pagination_route": false,
+      "create_relation_get_route": false,
+      "properties": {
+        "ayah_number": {
+          "type": "int4",
+          "required": true
+        },
+        "surah_number": {
+          "type": "int4",
+          "required": true
+        },
+        "text": {
+          "type": "text",
+          "required": true
+        },
+        "plain_text": {
+          "type": "text",
+          "required": false
+        }
+      },
+      "relations": {
+        "translation_id": {
+          "type": "ManyToOne",
+          "entity": "Translations",
+          "required": true
+        },
+        "ayah_translation_mappings": {
+          "type": "OneToMany",
+          "entity": "AyahTranslationMappings"
+        }
+      }
+    },
+    {
+      "name": "AyahTranslationMappings",
+      "create_pagination_route": false,
+      "create_relation_get_route": false,
+      "properties": {},
+      "relations": {
+        "translation_id": {
+          "type": "ManyToOne",
+          "entity": "Translations",
+          "required": true
+        },
+        "ayah_id": {
+          "type": "ManyToOne",
+          "entity": "Ayahs",
+          "required": true
+        },
+        "ayah_translation_id": {
+          "type": "ManyToOne",
+          "entity": "AyahTranslations",
+          "required": true
+        }
+      }
+    },
+
+    {
+      "name": "Configurations",
+      "create_pagination_route": false,
+      "create_relation_get_route": false,
+      "properties": {
+        "key": {
+          "type": "varchar",
+          "length": 100,
+          "required": true,
+          "unique": true
+        },
+        "value": {
+          "type": "text",
+          "required": true
+        },
+        "datatype": {
+          "type": "varchar",
+          "length": 20,
+          "required": true
+        },
+        "environment": {
+          "type": "varchar",
+          "length": 50,
+          "required": false
+        }
+      },
+      "relations": {}
+    },
+    {
+      "name": "Reflections",
+      "create_pagination_route": true,
+      "create_relation_get_route": true,
+      "properties": {
+        "surah_number": {
+          "type": "int4",
+          "required": true
+        },
+        "ayah_number": {
+          "type": "int4",
+          "required": true
+        },
+        "language": {
+          "type": "varchar",
+          "length": 10,
+          "required": true
+        },
+        "content": {
+          "type": "text",
+          "required": true
+        },
+        "is_public": {
+          "type": "boolean",
+          "default": true
+        },
+        "is_edited": {
+          "type": "boolean",
+          "default": false
+        },
+        "is_deleted": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "relations": {
+        "user_id": {
+          "type": "ManyToOne",
+          "entity": "Users",
+          "required": true
+        },
+        "reflection_likes": {
+          "type": "OneToMany",
+          "entity": "ReflectionLikes"
+        },
+        "reflection_replies": {
+          "type": "OneToMany",
+          "entity": "ReflectionReplies"
+        }
+      }
+    },
+    {
+      "name": "ReflectionLikes",
+      "create_pagination_route": false,
+      "create_relation_get_route": false,
+      "properties": {},
+      "relations": {
+        "reflection_id": {
+          "type": "ManyToOne",
+          "entity": "Reflections",
+          "required": true
+        },
+        "user_id": {
+          "type": "ManyToOne",
+          "entity": "Users",
+          "required": true
+        }
+      }
+    },
+    {
+      "name": "ReflectionReplies",
+      "create_pagination_route": false,
+      "create_relation_get_route": false,
+      "properties": {
+        "content": {
+          "type": "text",
+          "required": true
+        },
+        "language": {
+          "type": "varchar",
+          "length": 10,
+          "required": true
+        },
+        "is_deleted": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "relations": {
+        "reflection_id": {
+          "type": "ManyToOne",
+          "entity": "Reflections",
+          "required": true
+        },
+        "user_id": {
+          "type": "ManyToOne",
+          "entity": "Users",
+          "required": true
+        }
+      }
+    },
+    {
+      "name": "Reports",
+      "create_pagination_route": true,
+      "create_relation_get_route": false,
+      "properties": {
+        "reportable_type": {
+          "type": "varchar",
+          "length": 50,
+          "required": true
+        },
+        "reportable_id": {
+          "type": "int8",
+          "required": true
+        },
+        "report_type": {
+          "type": "varchar",
+          "length": 50,
+          "required": true
+        },
+        "description": {
+          "type": "text",
+          "required": false
+        },
+        "status": {
+          "type": "varchar",
+          "length": 20,
+          "default": "pending"
+        }
+      },
+      "relations": {
+        "user_id": {
+          "type": "ManyToOne",
+          "entity": "Users",
+          "required": true
+        }
+      }
+    },
+
+    {
+      "name": "Reflections",
+      "create_pagination_route": true,
+      "create_relation_get_route": true,
+      "properties": {
+        "reflection_type": {
+          "type": "varchar",
+          "length": 50,
+          "required": true
+        },
+        "surah_number": {
+          "type": "int4",
+          "required": true
+        },
+        "ayah_number": {
+          "type": "int4",
+          "required": true
+        },
+        "language": {
+          "type": "varchar",
+          "length": 10,
+          "required": true
+        },
+        "content": {
+          "type": "text",
+          "required": true
+        },
+        "is_public": {
+          "type": "boolean",
+          "default": true
+        },
+        "is_edited": {
+          "type": "boolean",
+          "default": false
+        },
+        "is_deleted": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "relations": {
+        "user_id": {
+          "type": "ManyToOne",
+          "entity": "Users",
+          "required": true
+        },
+        "reflection_likes": {
+          "type": "OneToMany",
+          "entity": "ReflectionLikes"
+        },
+        "reflection_replies": {
+          "type": "OneToMany",
+          "entity": "ReflectionReplies"
+        }
+      }
+    },
+    {
+      "name": "Languages",
+      "create_pagination_route": true,
+      "create_relation_get_route": true,
+      "properties": {
+        "code": {
+          "type": "varchar",
+          "length": 10,
+          "required": true
+        },
+        "name": {
+          "type": "text",
+          "length": 100,
+          "required": true
+        },
+        "native_name": {
+          "type": "text",
+          "length": 100,
+          "required": true
+        },
+        "is_rtl": {
+          "type": "boolean",
+          "required": true
+        },
+        "is_active": {
+          "type": "boolean",
+          "default": true
+        }
+      },
+      "relations": {}
+    },
+    {
+      "name": "SurahTranslations",
+      "create_pagination_route": true,
+      "create_relation_get_route": true,
+      "properties": {
+        "name": {
+          "type": "text",
+          "length": 100,
+          "required": true
+        },
+        "is_active": {
+          "type": "boolean",
+          "default": true
+        }
+      },
+      "relations": {
+        "surah_id": {
+          "type": "ManyToOne",
+          "entity": "Surahs",
+          "required": true
+        },
+        "translation_id": {
+          "type": "ManyToOne",
+          "entity": "Translations",
+          "required": true
+        }
+      }
+    },
+    {
+      "name": "Reciters",
+      "create_pagination_route": true,
+      "create_relation_get_route": true,
+      "properties": {
+        "name": {
+          "type": "text",
+          "length": 100,
+          "required": true
+        },
+        "slug": {
+          "type": "text",
+          "unique": true,
+          "required": true
+        },
+        "bio": {
+          "type": "text",
+          "required": false
+        },
+        "image_url": {
+          "type": "varchar",
+          "required": false
+        },
+        "is_default": {
+          "type": "boolean",
+          "default": false
+        },
+        "is_active": {
+          "type": "boolean",
+          "default": true
+        }
+      },
+      "relations": {
+        "recitations": {
+          "type": "OneToMany",
+          "entity": "Recitations"
+        }
+      }
+    },
+    {
+      "name": "Recitations",
+      "create_pagination_route": true,
+      "create_relation_get_route": true,
+      "properties": {
+        "style": {
+          "type": "text",
+          "length": 100
+        },
+        "audio_url": {
+          "type": "text"
+        },
+        "s3_url": {
+          "type": "text",
+          "required": false
+        },
+        "duration": {
+          "type": "int4",
+          "required": false
+        }
+      },
+      "relations": {
+        "reciter_id": {
+          "type": "ManyToOne",
+          "entity": "Reciters",
+          "required": true
+        },
+        "ayah_id": {
+          "type": "ManyToOne",
+          "entity": "Ayahs",
+          "required": true
+        }
+      }
+    }
+  ]
+}
