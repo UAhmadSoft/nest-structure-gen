@@ -1179,6 +1179,83 @@ export interface PaginatedResponse<T> {
     }
   }
 
+  // Validate schema before generation
+  validateSchema() {
+    const errors = [];
+    const tableMap = new Map(this.schema.tables.map(t => [t.name.toLowerCase(), t]));
+
+    this.schema.tables.forEach(table => {
+      // Check if table has relations
+      if (!table.relations) return;
+
+      Object.entries(table.relations).forEach(([relationName, relation]) => {
+        const relatedEntityName = (relation.entity || relationName).toLowerCase();
+
+        // Validation 1: OneToOne MUST have isOwner field
+        if (relation.type === 'OneToOne') {
+          if (relation.isOwner === undefined || relation.isOwner === null) {
+            errors.push(
+              `❌ Table "${table.name}" -> Relation "${relationName}": OneToOne relation MUST have "isOwner" field (true or false)`
+            );
+          }
+        }
+
+        // Validation 2: ManyToOne must have corresponding OneToMany
+        if (relation.type === 'ManyToOne') {
+          const relatedTable = tableMap.get(relatedEntityName);
+
+          if (relatedTable) {
+            // Check if related table has OneToMany back to this table
+            const hasCorrespondingOneToMany = relatedTable.relations &&
+              Object.values(relatedTable.relations).some(rel => {
+                const targetEntity = (rel.entity || '').toLowerCase();
+                return rel.type === 'OneToMany' &&
+                  (targetEntity === table.name.toLowerCase() || targetEntity === '');
+              });
+
+            if (!hasCorrespondingOneToMany) {
+              errors.push(
+                `❌ Table "${table.name}" -> Relation "${relationName}": Has ManyToOne to "${relation.entity}", ` +
+                `but table "${relation.entity}" does NOT have corresponding OneToMany relation back to "${table.name}"`
+              );
+            }
+          }
+        }
+
+        // Validation 3: OneToMany must have corresponding ManyToOne
+        if (relation.type === 'OneToMany') {
+          const relatedTable = tableMap.get(relatedEntityName);
+
+          if (relatedTable) {
+            // Check if related table has ManyToOne back to this table
+            const hasCorrespondingManyToOne = relatedTable.relations &&
+              Object.values(relatedTable.relations).some(rel => {
+                const targetEntity = (rel.entity || '').toLowerCase();
+                return rel.type === 'ManyToOne' &&
+                  (targetEntity === table.name.toLowerCase() || targetEntity === '');
+              });
+
+            if (!hasCorrespondingManyToOne) {
+              errors.push(
+                `❌ Table "${table.name}" -> Relation "${relationName}": Has OneToMany to "${relation.entity}", ` +
+                `but table "${relation.entity}" does NOT have corresponding ManyToOne relation back to "${table.name}"`
+              );
+            }
+          }
+        }
+      });
+    });
+
+    if (errors.length > 0) {
+      console.log(chalk.bold.red('\n⚠️  SCHEMA VALIDATION ERRORS:\n'));
+      errors.forEach(error => console.log(chalk.red(error)));
+      console.log(chalk.bold.red('\n❌ Please fix the schema validation errors before proceeding.\n'));
+      throw new Error('Schema validation failed');
+    }
+
+    this.log.success('Schema validation passed ✓');
+  }
+
   // Main generate method
   async generate() {
     try {
@@ -1188,6 +1265,11 @@ export interface PaginatedResponse<T> {
       this.log.info(`Schema loaded with ${this.schema.tables.length} tables`);
       this.log.info(`Root directory: ${chalk.yellow(this.schema.root || this.schema.url)}`);
       console.log(chalk.gray('═'.repeat(50)) + '\n');
+
+      // Validate schema before proceeding
+      this.log.process('Validating schema...');
+      this.validateSchema();
+      console.log('');
 
       // Create pagination interface first
       this.log.process('Creating pagination interface...');
