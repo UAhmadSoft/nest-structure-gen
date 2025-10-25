@@ -792,6 +792,7 @@ export class create${this.getPlural(this.getPascalCase(table.name))}Table${times
       case 'usecase':
         importPath = `./${(entityName).toLowerCase()}/${(entityName).toLowerCase()}.usecases`;
         className = `${entityName}UseCases`;
+        break;
 
 
       case 'controller':
