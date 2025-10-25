@@ -448,6 +448,202 @@
           "required": true
         }
       }
+    },
+
+    {
+      "name": "SessionConfigs",
+      "create_pagination_route": true,
+      "create_relation_get_route": false,
+      "properties": {
+        "unit_type": {
+          "type": "enum",
+          "enum": ["AYAH", "PAGE", "RUKU"],
+          "required": true
+        },
+        "unit_count": {
+          "type": "int4",
+          "required": true
+        },
+        "display_label": {
+          "type": "varchar",
+          "length": 100,
+          "required": true
+        },
+        "estimated_minutes": {
+          "type": "int4",
+          "required": true
+        },
+        "is_active": {
+          "type": "boolean",
+          "default": true
+        },
+        "is_default": {
+          "type": "boolean",
+          "default": false
+        },
+        "sort_order": {
+          "type": "int4",
+          "default": 0
+        },
+        "locale_default": {
+          "type": "varchar",
+          "length": 10,
+          "required": false,
+          "comment": "ar, ur, en - which locale uses this as default"
+        }
+      },
+      "relations": {
+        "sessions": {
+          "type": "OneToMany",
+          "entity": "Sessions"
+        },
+        "user_onboarding_responses": {
+          "type": "OneToMany",
+          "entity": "UserOnboardingResponses"
+        }
+      }
+    },
+    {
+      "name": "UserOnboardingResponses",
+      "create_pagination_route": false,
+      "create_relation_get_route": true,
+      "properties": {
+        "onboarding_goal": {
+          "type": "enum",
+          "length": 50,
+          "required": true,
+          "enum": [
+            "MEDITATION_AND_CONTEMPLATION",
+            "READING_SESSIONS",
+            "COMPLETE_QURAN",
+            "UNDERSTANDING_AND_LEARNING"
+          ]
+        },
+        "preferred_reminder_time": {
+          "type": "varchar",
+          "length": 20,
+          "required": false
+        },
+        "reminder_enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "reminder_time_type": {
+          "type": "enum",
+          "enum": ["CUSTOM", "PRAYER_TIME", "WORK_BREAK", "BEFORE_BED"],
+          "required": false
+        },
+        "preferred_prayer_time": {
+          "type": "enum",
+          "enum": ["FAJR", "DHUHR", "ASR", "MAGHRIB", "ISHA"],
+          "required": false
+        }
+      },
+      "relations": {
+        "user_id": {
+          "type": "OneToOne",
+          "entity": "Users",
+          "required": false,
+          "isOwner": false
+        },
+        "session_config_id": {
+          "type": "ManyToOne",
+          "entity": "SessionConfigs",
+          "required": true
+        }
+      }
+    },
+    {
+      "name": "Sessions",
+      "create_pagination_route": true,
+      "create_relation_get_route": true,
+      "properties": {
+        "session_date": {
+          "type": "date",
+          "required": true
+        },
+        "ayah_count": {
+          "type": "int4",
+          "required": true
+        },
+        "status": {
+          "type": "enum",
+          "enum": ["IN_PROGRESS", "COMPLETED", "OVERDUE"],
+          "required": true,
+          "default": "IN_PROGRESS"
+        },
+        "completed_at": {
+          "type": "timestamptz",
+          "required": false
+        },
+        "time_spent_seconds": {
+          "type": "int4",
+          "default": 0
+        }
+      },
+      "relations": {
+        "user_id": {
+          "type": "ManyToOne",
+          "entity": "Users",
+          "required": true
+        },
+        "start_ayah_id": {
+          "type": "ManyToOne",
+          "entity": "Ayahs",
+          "required": true
+        },
+        "end_ayah_id": {
+          "type": "ManyToOne",
+          "entity": "Ayahs",
+          "required": true
+        },
+        "session_config_id": {
+          "type": "ManyToOne",
+          "entity": "SessionConfigs",
+          "required": true
+        },
+        "user_progresses": {
+          "type": "OneToMany",
+          "entity": "UserProgress"
+        }
+      }
+    },
+    {
+      "name": "UserProgress",
+      "create_pagination_route": false,
+      "create_relation_get_route": true,
+      "properties": {
+        "current_streak": {
+          "type": "int4",
+          "default": 0
+        },
+        "longest_streak": {
+          "type": "int4",
+          "default": 0
+        },
+        "last_session_date": {
+          "type": "date",
+          "required": false
+        }
+      },
+      "relations": {
+        "user_id": {
+          "type": "OneToOne",
+          "entity": "Users",
+          "required": true,
+          "isOwner": false
+        },
+        "last_completed_ayah_id": {
+          "type": "ManyToOne",
+          "entity": "Ayahs",
+          "required": false
+        },
+        "last_session_id": {
+          "type": "ManyToOne",
+          "entity": "Sessions",
+          "required": false
+        }
+      }
     }
   ]
 }
