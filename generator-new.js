@@ -326,19 +326,20 @@ export class Query${entityName}Dto {
 
 export class ${entityName}Model {
   ${Object.entries(table.properties).map(([key, prop]) => {
+      const optional = prop.required === false ? '?' : '';
       if (prop.type === 'enum') {
-        return `${key}: ${enums[key].name};`;
+        return `${key}${optional}: ${enums[key].name};`;
       } else {
-        return `${key}: ${this.getTypeScriptType(prop.type)};`;
+        return `${key}${optional}: ${this.getTypeScriptType(prop.type)};`;
       }
     }).join('\n  ')}
   
   ${Object.entries(table.relations || {}).map(([key, rel]) => {
       if (rel.type === 'ManyToOne') {
-        return `${this.toSnakeCase(key)}${rel.required === true ? '' : '?'}: number;`;
+        return `${this.toSnakeCase(key)}${rel.required === false ? '?' : ''}: number;`;
       }
       else if (rel.type === 'OneToOne' && !rel.isOwner) {
-        return `${this.toSnakeCase(key)}${rel.required === true ? '' : '?'}: number;`;
+        return `${this.toSnakeCase(key)}${rel.required === false ? '?' : ''}: number;`;
       }
       return '';
     }).filter(Boolean).join('\n  ')}

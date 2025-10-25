@@ -103,7 +103,8 @@
         "user_id": {
           "type": "OneToOne",
           "entity": "Users",
-          "required": false
+          "required": false,
+          "isOwner": false
         },
         "session_config_id": {
           "type": "ManyToOne",
