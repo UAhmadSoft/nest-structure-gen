@@ -681,7 +681,7 @@ export class create${this.getPlural(this.getPascalCase(table.name))}Table${times
             // Use enum reference for enum types
             const enumName = enums[key].name;
             const enumKey = prop.default.toUpperCase().replace(/[^A-Z0-9]/g, '_');
-            defaultValue = `default: \`\${${enumName}.${enumKey}}\`,`;
+            defaultValue = `default: \`'\${${enumName}.${enumKey}}'\`,`;
           } else if (prop.type === 'varchar' || prop.type === 'text') {
             defaultValue = `default: "'${prop.default}'",`;
           } else {
