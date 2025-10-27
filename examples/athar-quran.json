@@ -644,6 +644,52 @@
           "required": false
         }
       }
+    },
+    {
+      "name": "TafsirBookmarks",
+      "create_pagination_route": true,
+      "create_relation_get_route": true,
+      "properties": {
+        "notes": {
+          "type": "text",
+          "required": false
+        }
+      },
+      "relations": {
+        "user_id": {
+          "type": "ManyToOne",
+          "entity": "Users",
+          "required": true
+        },
+        "tafsir_id": {
+          "type": "ManyToOne",
+          "entity": "Tafsirs",
+          "required": true
+        }
+      }
+    },
+    {
+      "name": "AyahBookmarks",
+      "create_pagination_route": true,
+      "create_relation_get_route": true,
+      "properties": {
+        "notes": {
+          "type": "text",
+          "required": false
+        }
+      },
+      "relations": {
+        "user_id": {
+          "type": "ManyToOne",
+          "entity": "Users",
+          "required": true
+        },
+        "ayah_id": {
+          "type": "ManyToOne",
+          "entity": "Ayahs",
+          "required": true
+        }
+      }
     }
   ]
 }

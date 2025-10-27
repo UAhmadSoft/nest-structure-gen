@@ -11,40 +11,44 @@
   "insert_to_modules": true,
   "tables": [
     {
-      "name": "TafsirBookmarks",
+      "name": "Challenges",
       "create_pagination_route": true,
       "create_relation_get_route": true,
       "properties": {
-        "notes": {
-          "type": "text",
-          "required": false
-        }
-      },
-      "relations": {
-        "user_id": {
-          "type": "ManyToOne",
-          "entity": "Users",
+        "title": {
+          "type": "varchar",
+          "length": 255,
           "required": true
         },
-        "tafsir_id": {
-          "type": "ManyToOne",
-          "entity": "Tafsirs",
-          "required": true
-        }
-      }
-    },
-    {
-      "name": "AyahBookmarks",
-      "create_pagination_route": true,
-      "create_relation_get_route": true,
-      "properties": {
-        "notes": {
+        "description": {
           "type": "text",
-          "required": false
+          "required": true
+        },
+        "duration_days": {
+          "type": "int4",
+          "required": true,
+          "comment": "Challenge duration in days (e.g., 3, 5, 7)"
+        },
+        "creator_type": {
+          "type": "enum",
+          "enum": ["ADMIN", "USER"],
+          "default": "USER",
+          "required": true
+        },
+        "status": {
+          "type": "enum",
+          "enum": ["DRAFT", "ACTIVE", "PENDING_VERIFICATION", "REJECTED", "ARCHIVED"],
+          "required": true,
+          "default": "PENDING_VERIFICATION"
+        },
+        "is_public": {
+          "type": "boolean",
+          "default": true,
+          "comment": "Whether challenge is visible to all users"
         }
       },
       "relations": {
-        "user_id": {
+        "created_by_id": {
           "type": "ManyToOne",
           "entity": "Users",
           "required": true
@@ -52,6 +56,69 @@
         "ayah_id": {
           "type": "ManyToOne",
           "entity": "Ayahs",
+          "required": false,
+          "comment": "Optional ayah reference for the challenge"
+        },
+        "challenge_participants": {
+          "type": "OneToMany",
+          "entity": "ChallengeParticipants"
+        },
+        "language_id": {
+          "type": "ManyToOne",
+          "entity": "Languages",
+          "required": false
+        }
+      }
+    },
+    {
+      "name": "ChallengeParticipants",
+      "create_pagination_route": true,
+      "create_relation_get_route": true,
+      "properties": {
+        "status": {
+          "type": "enum",
+          "enum": ["IN_PROGRESS", "COMPLETED", "FAILED", "ABANDONED"],
+          "required": true,
+          "default": "IN_PROGRESS"
+        },
+        "start_date": {
+          "type": "date",
+          "required": true
+        },
+        "end_date": {
+          "type": "date",
+          "required": false,
+          "comment": "Expected end date based on duration"
+        },
+        "completed_date": {
+          "type": "date",
+          "required": false
+        },
+        "days_completed": {
+          "type": "int4",
+          "default": 0,
+          "comment": "Number of days user has completed"
+        },
+        "current_streak": {
+          "type": "int4",
+          "default": 0,
+          "comment": "Current consecutive days completed"
+        },
+        "notes": {
+          "type": "text",
+          "required": false,
+          "comment": "User's personal notes for this challenge"
+        }
+      },
+      "relations": {
+        "challenge_id": {
+          "type": "ManyToOne",
+          "entity": "Challenges",
+          "required": true
+        },
+        "user_id": {
+          "type": "ManyToOne",
+          "entity": "Users",
           "required": true
         }
       }
