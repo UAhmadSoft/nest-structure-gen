@@ -641,9 +641,22 @@ export class ${entityName}Controller {
     const tableName = this.toSnakeCase(this.getCamelCase(this.getPlural(table.name))).toLowerCase();
     const enums = this.getEnumsFromTable(table);
 
+    // Check if any enum properties have default values
+    const enumsWithDefaults = {};
+    Object.entries(table.properties).forEach(([key, prop]) => {
+      if (prop.type === 'enum' && prop.default && enums[key]) {
+        enumsWithDefaults[key] = enums[key];
+      }
+    });
+
+    // Generate enum imports if needed
+    const enumImports = Object.keys(enumsWithDefaults).length > 0
+      ? `import { ${Object.values(enumsWithDefaults).map(e => e.name).join(', ')} } from 'src/infrastructure/enums/${table.name.toLowerCase()}-enums.enum';\n`
+      : '';
+
     const template = `
 import { MigrationInterface, QueryRunner, Table, TableForeignKey, TableColumn } from 'typeorm';
-
+${enumImports}
 export class create${this.getPlural(this.getPascalCase(table.name))}Table${timestamp} implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.createTable(
@@ -661,11 +674,26 @@ export class create${this.getPlural(this.getPascalCase(table.name))}Table${times
           },
           ${Object.entries(table.properties).map(([key, prop]) => {
         const columnType = prop.type === 'enum' ? 'varchar' : prop.type;
+        let defaultValue = '';
+
+        if (prop.default) {
+          if (prop.type === 'enum' && enums[key]) {
+            // Use enum reference for enum types
+            const enumName = enums[key].name;
+            const enumKey = prop.default.toUpperCase().replace(/[^A-Z0-9]/g, '_');
+            defaultValue = `default: \`\${${enumName}.${enumKey}}\`,`;
+          } else if (prop.type === 'varchar' || prop.type === 'text') {
+            defaultValue = `default: "'${prop.default}'",`;
+          } else {
+            defaultValue = `default: ${prop.default},`;
+          }
+        }
+
         return `{
               name: '${key}',
               type: '${columnType}',
               ${prop.required === false ? 'isNullable: true,' : ''}
-              ${prop.default ? `default: ` + (prop.type === 'varchar' || prop.type === 'text' || prop.type === 'enum' ? `"'${prop.default}'"` : prop.default) + ',' : ''}
+              ${defaultValue}
             },`;
       }).join('\n          ')}
           ${Object.entries(table.relations || {}).map(([key, rel]) => {
