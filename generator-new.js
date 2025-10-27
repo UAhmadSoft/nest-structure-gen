@@ -893,16 +893,9 @@ export class create${this.getPlural(this.getPascalCase(table.name))}Table${times
 
   // Helper to add items to module arrays
   addToModuleArray(decoratorArg, arrayName, items) {
-    console.log('\n========== addToModuleArray CALLED ==========');
-    console.log('arrayName:', arrayName);
-    console.log('items to add:', items);
-
     items.forEach((item, index) => {
       // CRITICAL: Get fresh text on each iteration after replaceWithText updates it
       const text = decoratorArg.getText();
-
-      console.log(`\n--- Processing item ${index + 1}/${items.length}: "${item}" ---`);
-      console.log('Current decorator text length:', text.length);
 
       // Check if item already exists ONLY in the specific array (not anywhere in the decorator)
       const arrayContentPattern = new RegExp(`${arrayName}:\\s*\\[([\\s\\S]*?)\\]`, 'g');
@@ -913,30 +906,25 @@ export class create${this.getPlural(this.getPascalCase(table.name))}Table${times
         const arrayContent = arrayMatch[1];
         const itemPattern = new RegExp(`\\b${item.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`);
         itemExists = itemPattern.test(arrayContent);
-        console.log(`→ Checking in "${arrayName}" array only:`, itemExists ? 'FOUND' : 'NOT FOUND');
       }
 
       if (itemExists) {
-        console.log(`✓ Item "${item}" already exists in ${arrayName}, skipping`);
         return; // Skip if already exists
-      } console.log(`→ Item "${item}" NOT found, adding it...`);
+      }
+
       let updatedText;
 
       // Check if the array property exists
       const arrayPattern = new RegExp(`${arrayName}:\\s*\\[`, 's');
 
       if (!arrayPattern.test(text)) {
-        console.log(`→ Array "${arrayName}" does NOT exist, creating it...`);
         updatedText = text.replace(/\{/, `{\n  ${arrayName}: [${item}],`);
       } else {
-        console.log(`→ Array "${arrayName}" EXISTS, adding to it...`);
-
         // Find the array content by matching balanced brackets
         const arrayStartPattern = new RegExp(`${arrayName}:\\s*\\[`);
         const arrayStartMatch = arrayStartPattern.exec(text);
 
         if (!arrayStartMatch) {
-          console.log('✗ Could not find array start!');
           return;
         }
 
@@ -955,27 +943,17 @@ export class create${this.getPlural(this.getPascalCase(table.name))}Table${times
         const existing = text.substring(startIndex, endIndex);
         const closing = ']';
 
-        console.log('✓ Found array boundaries using bracket counting');
-        console.log('Opening:', opening.substring(0, 50));
-        console.log('Existing content length:', existing.length);
-        console.log('Closing:', closing);
-
         // Clean up existing content and check if it's empty
         const trimmedExisting = existing.trim();
 
         if (!trimmedExisting) {
-          console.log('  → Array is EMPTY');
           updatedText = text.substring(0, arrayStartMatch.index) +
             `${opening}${item}${closing}` +
             text.substring(endIndex + 1);
         } else {
-          console.log('  → Array has content, trimmed length:', trimmedExisting.length);
-          console.log('  → Last char of trimmed:', JSON.stringify(trimmedExisting[trimmedExisting.length - 1]));
-
           // Add comma if the last item doesn't have one
           const needsComma = !trimmedExisting.endsWith(',');
           const separator = needsComma ? ',' : '';
-          console.log('  → Needs comma:', needsComma, '| Separator:', JSON.stringify(separator));
 
           // Preserve indentation by checking the existing format
           const lines = existing.split('\n');
@@ -988,8 +966,6 @@ export class create${this.getPlural(this.getPascalCase(table.name))}Table${times
               break;
             }
           }
-          console.log('  → Lines count:', lines.length);
-          console.log('  → Detected indent:', JSON.stringify(indent), '(length:', indent.length, ')');
 
           // Remove trailing whitespace from existing and add item with proper formatting
           const cleanExisting = existing.replace(/\s+$/, '');
@@ -998,18 +974,11 @@ export class create${this.getPlural(this.getPascalCase(table.name))}Table${times
           updatedText = text.substring(0, arrayStartMatch.index) +
             replacement +
             text.substring(endIndex + 1);
-
-          console.log('  → Result first 200 chars:', replacement.substring(0, 200));
         }
       }
 
-      console.log('→ Calling replaceWithText...');
-      console.log('Updated text length:', updatedText.length);
       decoratorArg.replaceWithText(updatedText);
-      console.log('✓ replaceWithText completed');
     });
-
-    console.log('========== addToModuleArray FINISHED ==========\n');
   }  // Helper for relation generation
   generateRelation(relationName, relation, entityName) {
     const { type, entity: relatedEntity, required, isOwner } = relation;
