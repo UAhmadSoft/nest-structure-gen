@@ -690,6 +690,438 @@
           "required": true
         }
       }
+    },
+    {
+      "name": "Challenges",
+      "create_pagination_route": true,
+      "create_relation_get_route": true,
+      "properties": {
+        "title": {
+          "type": "varchar",
+          "length": 255,
+          "required": true
+        },
+        "description": {
+          "type": "text",
+          "required": true
+        },
+        "duration_days": {
+          "type": "int4",
+          "required": true,
+          "comment": "Challenge duration in days (e.g., 3, 5, 7)"
+        },
+        "creator_type": {
+          "type": "enum",
+          "enum": ["ADMIN", "USER"],
+          "default": "USER",
+          "required": true
+        },
+        "status": {
+          "type": "enum",
+          "enum": ["DRAFT", "ACTIVE", "PENDING_VERIFICATION", "REJECTED", "ARCHIVED"],
+          "required": true,
+          "default": "PENDING_VERIFICATION"
+        },
+        "is_public": {
+          "type": "boolean",
+          "default": true,
+          "comment": "Whether challenge is visible to all users"
+        }
+      },
+      "relations": {
+        "created_by_id": {
+          "type": "ManyToOne",
+          "entity": "Users",
+          "required": true
+        },
+        "ayah_id": {
+          "type": "ManyToOne",
+          "entity": "Ayahs",
+          "required": false,
+          "comment": "Optional ayah reference for the challenge"
+        },
+        "challenge_participants": {
+          "type": "OneToMany",
+          "entity": "ChallengeParticipants"
+        },
+        "language_id": {
+          "type": "ManyToOne",
+          "entity": "Languages",
+          "required": false
+        }
+      }
+    },
+    {
+      "name": "ChallengeParticipants",
+      "create_pagination_route": true,
+      "create_relation_get_route": true,
+      "properties": {
+        "status": {
+          "type": "enum",
+          "enum": ["IN_PROGRESS", "COMPLETED", "FAILED", "ABANDONED"],
+          "required": true,
+          "default": "IN_PROGRESS"
+        },
+        "start_date": {
+          "type": "date",
+          "required": true
+        },
+        "end_date": {
+          "type": "date",
+          "required": false,
+          "comment": "Expected end date based on duration"
+        },
+        "completed_date": {
+          "type": "date",
+          "required": false
+        },
+        "days_completed": {
+          "type": "int4",
+          "default": 0,
+          "comment": "Number of days user has completed"
+        },
+        "current_streak": {
+          "type": "int4",
+          "default": 0,
+          "comment": "Current consecutive days completed"
+        },
+        "notes": {
+          "type": "text",
+          "required": false,
+          "comment": "User's personal notes for this challenge"
+        }
+      },
+      "relations": {
+        "challenge_id": {
+          "type": "ManyToOne",
+          "entity": "Challenges",
+          "required": true
+        },
+        "user_id": {
+          "type": "ManyToOne",
+          "entity": "Users",
+          "required": true
+        }
+      }
+    },
+    {
+      "name": "Quizzes",
+      "create_pagination_route": true,
+      "create_relation_get_route": true,
+      "properties": {
+        "question": {
+          "type": "text",
+          "required": true
+        },
+        "option_a": {
+          "type": "varchar",
+          "length": 500,
+          "required": true
+        },
+        "option_b": {
+          "type": "varchar",
+          "length": 500,
+          "required": true
+        },
+        "option_c": {
+          "type": "varchar",
+          "length": 500,
+          "required": false
+        },
+        "option_d": {
+          "type": "varchar",
+          "length": 500,
+          "required": false
+        },
+        "option_e": {
+          "type": "varchar",
+          "length": 500,
+          "required": false
+        },
+        "option_f": {
+          "type": "varchar",
+          "length": 500,
+          "required": false
+        },
+        "option_g": {
+          "type": "varchar",
+          "length": 500,
+          "required": false
+        },
+        "correct_answer": {
+          "type": "enum",
+          "enum": ["A", "B", "C", "D"],
+          "required": true
+        },
+        "creator_type": {
+          "type": "enum",
+          "enum": ["ADMIN", "USER"],
+          "required": true
+        },
+        "status": {
+          "type": "enum",
+          "enum": ["ACTIVE", "INACTIVE", "PENDING_REVIEW"],
+          "default": "PENDING_REVIEW",
+          "comment": "User quizzes start as PENDING_REVIEW"
+        }
+      },
+      "relations": {
+        "ayah_id": {
+          "type": "ManyToOne",
+          "entity": "Ayahs"
+        },
+        "language_id": {
+          "type": "ManyToOne",
+          "entity": "Languages",
+          "required": true
+        },
+        "created_by_id": {
+          "type": "ManyToOne",
+          "entity": "Users",
+          "required": true
+        },
+        "quiz_attempts": {
+          "type": "OneToMany",
+          "entity": "QuizAttempts"
+        }
+      }
+    },
+    {
+      "name": "QuizAttempts",
+      "create_pagination_route": false,
+      "create_relation_get_route": false,
+      "properties": {
+        "selected_answer": {
+          "type": "varchar",
+          "length": 500,
+          "required": true
+        },
+        "is_correct": {
+          "type": "boolean",
+          "required": true
+        },
+        "attempted_at": {
+          "type": "timestamptz",
+          "default": "NOW()"
+        }
+      },
+      "relations": {
+        "user_id": {
+          "type": "ManyToOne",
+          "entity": "Users",
+          "required": true
+        },
+        "quiz_id": {
+          "type": "ManyToOne",
+          "entity": "Quizzes",
+          "required": true
+        }
+      }
+    },
+    {
+      "name": "ChallengeProgress",
+      "create_pagination_route": false,
+      "create_relation_get_route": false,
+      "properties": {
+        "progress_date": {
+          "type": "date",
+          "required": true,
+          "comment": "Date of progress (YYYY-MM-DD)"
+        },
+        "count_completed": {
+          "type": "int4",
+          "default": 0,
+          "comment": "Number of times completed today. For ONCE_DAILY: 0 or 1. For MULTIPLE_DAILY: actual count (e.g., 3/5)"
+        },
+        "is_completed": {
+          "type": "boolean",
+          "default": false,
+          "comment": "True if daily target met (ONCE_DAILY: count >= 1, MULTIPLE_DAILY: count >= target_count_per_day)"
+        }
+      },
+      "relations": {
+        "participant_id": {
+          "type": "ManyToOne",
+          "entity": "ChallengeParticipants",
+          "required": true
+        }
+      },
+      "indexes": [
+        {
+          "columns": ["participant_id", "progress_date"],
+          "unique": true,
+          "name": "idx_challenge_progress_participant_date_unique"
+        }
+      ]
+    },
+    {
+      "name": "Communities",
+      "create_pagination_route": true,
+      "create_relation_get_route": true,
+      "properties": {
+        "name": {
+          "type": "varchar",
+          "length": 100,
+          "required": true
+        },
+        "description": {
+          "type": "text",
+          "required": false
+        },
+        "badge_url": {
+          "type": "varchar",
+          "length": 500,
+          "required": false
+        },
+        "community_type": {
+          "type": "enum",
+          "enum": ["PUBLIC", "PRIVATE"],
+          "required": true,
+          "default": "PUBLIC",
+          "useDbEnum": true
+        },
+        "join_code": {
+          "type": "varchar",
+          "length": 50,
+          "required": false,
+          "comment": "For private communities"
+        },
+        "is_active": {
+          "type": "boolean",
+          "default": true
+        },
+        "auto_approve_members": {
+          "type": "boolean",
+          "default": true,
+          "comment": "default true for public communities"
+        }
+      },
+      "relations": {
+        "created_by_id": {
+          "type": "ManyToOne",
+          "entity": "Users",
+          "required": true
+        },
+        "community_members": {
+          "type": "OneToMany",
+          "entity": "CommunityMembers"
+        }
+      }
+    },
+    {
+      "name": "CommunityMembers",
+      "create_pagination_route": true,
+      "create_relation_get_route": true,
+      "properties": {
+        "role": {
+          "type": "enum",
+          "enum": ["ADMIN", "MEMBER"],
+          "required": true,
+          "default": "MEMBER",
+          "useDbEnum": true
+        },
+        "status": {
+          "type": "enum",
+          "enum": ["ACTIVE", "LEFT"],
+          "required": true,
+          "default": "ACTIVE",
+          "useDbEnum": true
+        },
+        "joined_at": {
+          "type": "timestamptz",
+          "required": true
+        }
+      },
+      "relations": {
+        "user_id": {
+          "type": "ManyToOne",
+          "entity": "Users",
+          "required": true
+        },
+        "community_id": {
+          "type": "ManyToOne",
+          "entity": "Communities",
+          "required": true
+        }
+      }
+    },
+    {
+      "name": "Achievements",
+      "create_pagination_route": true,
+      "create_relation_get_route": false,
+      "properties": {
+        "title": {
+          "type": "varchar",
+          "length": 200,
+          "required": true
+        },
+        "description": {
+          "type": "text",
+          "required": true
+        },
+        "icon_url": {
+          "type": "varchar",
+          "length": 500,
+          "required": false
+        },
+        "achievement_type": {
+          "type": "enum",
+          "enum": ["STREAK", "SESSIONS", "CHALLENGES", "QUIZZES", "KHATAM"],
+          "required": true,
+          "useDbEnum": true
+        },
+        "criteria_value": {
+          "type": "int4",
+          "required": true,
+          "comment": "e.g., 7 for 7-day streak"
+        },
+        "sort_order": {
+          "type": "int4",
+          "default": 0
+        },
+        "is_active": {
+          "type": "boolean",
+          "default": true
+        }
+      },
+      "relations": {
+        "user_achievements": {
+          "type": "OneToMany",
+          "entity": "UserAchievements"
+        }
+      }
+    },
+    {
+      "name": "UserAchievements",
+      "create_pagination_route": true,
+      "create_relation_get_route": true,
+      "properties": {
+        "progress_value": {
+          "type": "int4",
+          "required": true,
+          "default": 0
+        },
+        "is_completed": {
+          "type": "boolean",
+          "default": false
+        },
+        "completed_at": {
+          "type": "timestamptz",
+          "required": false
+        }
+      },
+      "relations": {
+        "user_id": {
+          "type": "ManyToOne",
+          "entity": "Users",
+          "required": true
+        },
+        "achievement_id": {
+          "type": "ManyToOne",
+          "entity": "Achievements",
+          "required": true
+        }
+      }
     }
   ]
 }

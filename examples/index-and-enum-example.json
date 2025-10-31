@@ -1,0 +1,267 @@
+{
+  "root": "D:/projects/example-api",
+  "paths": {
+    "src": "/src",
+    "entity_module": "/src/infrastructure/entities/db.ts",
+    "repository_module": "/src/infrastructure/repository/repository.module.ts",
+    "usecase_module": "/src/usecases/usecase.module.ts",
+    "controller_module": "/src/infrastructure/controllers/controller.module.ts"
+  },
+  "char_primary_key": false,
+  "insert_to_modules": true,
+  "tables": [
+    {
+      "name": "User",
+      "create_pagination_route": true,
+      "create_relation_get_route": false,
+      "properties": {
+        "email": {
+          "type": "varchar",
+          "required": true,
+          "unique": true
+        },
+        "username": {
+          "type": "varchar",
+          "required": true,
+          "unique": true
+        },
+        "role": {
+          "type": "enum",
+          "enum": ["admin", "user", "moderator"],
+          "required": true,
+          "default": "user",
+          "useDbEnum": true,
+          "comment": "User role - uses database-level enum for data integrity"
+        },
+        "status": {
+          "type": "enum",
+          "enum": ["active", "inactive", "suspended", "pending"],
+          "required": true,
+          "default": "pending",
+          "useDbEnum": false,
+          "comment": "User status - uses varchar with TypeScript enum only"
+        },
+        "first_name": {
+          "type": "varchar",
+          "required": true
+        },
+        "last_name": {
+          "type": "varchar",
+          "required": true
+        }
+      },
+      "relations": {
+        "posts": {
+          "type": "OneToMany",
+          "entity": "Post"
+        },
+        "profile": {
+          "type": "OneToOne",
+          "entity": "Profile",
+          "isOwner": true
+        }
+      },
+      "indexes": [
+        {
+          "columns": ["email"],
+          "unique": true,
+          "name": "idx_user_email_unique"
+        },
+        {
+          "columns": ["username"],
+          "unique": true,
+          "name": "idx_user_username_unique"
+        },
+        {
+          "columns": ["role", "status"],
+          "unique": false,
+          "name": "idx_user_role_status"
+        },
+        {
+          "columns": ["created_on"],
+          "unique": false,
+          "name": "idx_user_created_on"
+        }
+      ]
+    },
+    {
+      "name": "Profile",
+      "create_pagination_route": true,
+      "create_relation_get_route": false,
+      "properties": {
+        "bio": {
+          "type": "text",
+          "required": false
+        },
+        "avatar_url": {
+          "type": "varchar",
+          "required": false
+        },
+        "phone": {
+          "type": "varchar",
+          "required": false
+        }
+      },
+      "relations": {
+        "user_id": {
+          "type": "OneToOne",
+          "entity": "User",
+          "required": true,
+          "isOwner": false
+        }
+      },
+      "indexes": [
+        {
+          "columns": ["user_id"],
+          "unique": true
+        }
+      ]
+    },
+    {
+      "name": "Post",
+      "create_pagination_route": true,
+      "create_relation_get_route": true,
+      "properties": {
+        "title": {
+          "type": "varchar",
+          "required": true
+        },
+        "content": {
+          "type": "text",
+          "required": true
+        },
+        "status": {
+          "type": "enum",
+          "enum": ["draft", "published", "archived"],
+          "required": true,
+          "default": "draft",
+          "useDbEnum": true,
+          "comment": "Post status with DB enum constraint"
+        },
+        "visibility": {
+          "type": "enum",
+          "enum": ["public", "private", "friends"],
+          "required": true,
+          "default": "public",
+          "useDbEnum": false,
+          "comment": "Post visibility - TypeScript enum only"
+        },
+        "view_count": {
+          "type": "int4",
+          "default": 0
+        },
+        "published_at": {
+          "type": "timestamp",
+          "required": false
+        }
+      },
+      "relations": {
+        "author_id": {
+          "type": "ManyToOne",
+          "entity": "User",
+          "required": true
+        },
+        "comments": {
+          "type": "OneToMany",
+          "entity": "Comment"
+        }
+      },
+      "indexes": [
+        {
+          "columns": ["author_id", "status"],
+          "unique": false,
+          "name": "idx_post_author_status"
+        },
+        {
+          "columns": ["published_at"],
+          "unique": false,
+          "name": "idx_post_published_at"
+        },
+        {
+          "columns": ["title"],
+          "unique": false,
+          "name": "idx_post_title"
+        }
+      ]
+    },
+    {
+      "name": "Comment",
+      "create_pagination_route": true,
+      "create_relation_get_route": false,
+      "properties": {
+        "content": {
+          "type": "text",
+          "required": true
+        },
+        "is_approved": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "relations": {
+        "post_id": {
+          "type": "ManyToOne",
+          "entity": "Post",
+          "required": true
+        },
+        "author_id": {
+          "type": "ManyToOne",
+          "entity": "User",
+          "required": true
+        }
+      },
+      "indexes": [
+        {
+          "columns": ["post_id", "created_on"],
+          "unique": false,
+          "name": "idx_comment_post_created"
+        },
+        {
+          "columns": ["author_id"],
+          "unique": false,
+          "name": "idx_comment_author"
+        }
+      ]
+    },
+    {
+      "name": "ChallengeProgress",
+      "create_pagination_route": false,
+      "create_relation_get_route": false,
+      "properties": {
+        "progress_date": {
+          "type": "date",
+          "required": true,
+          "comment": "Date of progress (YYYY-MM-DD)"
+        },
+        "count_completed": {
+          "type": "int4",
+          "default": 0,
+          "comment": "Number of times completed today"
+        },
+        "is_completed": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "relations": {
+        "user_id": {
+          "type": "ManyToOne",
+          "entity": "User",
+          "required": true
+        }
+      },
+      "indexes": [
+        {
+          "columns": ["user_id", "progress_date"],
+          "unique": true,
+          "name": "idx_challenge_progress_unique"
+        },
+        {
+          "columns": ["progress_date"],
+          "unique": false,
+          "name": "idx_challenge_progress_date"
+        }
+      ]
+    }
+  ]
+}

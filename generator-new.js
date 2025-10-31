@@ -84,11 +84,25 @@ class NestjsResourceGenerator {
         const enumName = `${this.getPascalCase(table.name)}${this.getPascalCase(key)}Enum`;
         enums[key] = {
           name: enumName,
-          values: prop.enum
+          values: prop.enum,
+          useDbEnum: prop.useDbEnum || false, // Support database-level enum
+          dbEnumName: prop.useDbEnum ? `${this.toSnakeCase(table.name)}_${this.toSnakeCase(key)}_enum` : null
         };
       }
     });
     return enums;
+  }
+
+  // Helper method to extract indexes from table
+  getIndexesFromTable(table) {
+    if (!table.indexes || !Array.isArray(table.indexes)) {
+      return [];
+    }
+    return table.indexes.map((index, idx) => ({
+      columns: index.columns || [],
+      unique: index.unique || false,
+      name: index.name || `idx_${table.name.toLowerCase()}_${index.columns.join('_')}`
+    }));
   }
 
   // Generate enum file for a table
@@ -137,6 +151,7 @@ export type ${entityName}EnumTypes = {
     const entityClassName = this.getEntityClassName(table.name);
     const tableName = this.toSnakeCase(this.getCamelCase(this.getPlural(table.name))).toLowerCase();
     const enums = this.getEnumsFromTable(table);
+    const indexes = this.getIndexesFromTable(table);
 
     // Build import statements
     const imports = [`
@@ -151,7 +166,8 @@ import {
   ManyToOne,
   ManyToMany,
   JoinTable,
-  JoinColumn
+  JoinColumn,
+  Index
 } from 'typeorm';`];
 
     // Add enum imports if needed
@@ -170,21 +186,40 @@ import {
     });
     imports.push(...Array.from(relationImports));
 
+    // Build index decorators
+    const indexDecorators = indexes.map(index => {
+      const columns = index.columns.map(col => `"${col}"`).join(', ');
+      return `@Index("${index.name}", [${columns}]${index.unique ? ', { unique: true }' : ''})`;
+    }).join('\n');
+
     const template = `${imports.join('\n')}
 
-@Entity('${tableName}')
+${indexDecorators ? indexDecorators + '\n' : ''}@Entity('${tableName}')
 export class ${entityClassName} {
   @PrimaryGeneratedColumn({ type: '${this.schema.char_primary_key ? 'uuid' : 'int4'}' })
   id: ${this.schema.char_primary_key ? 'string' : 'number'};
 
   ${Object.entries(table.properties).map(([key, prop]) => {
       if (prop.type === 'enum') {
-        return `
-  @Column({ type: 'varchar' })
-  ${key}: ${enums[key].name};`;
+        const enumData = enums[key];
+        if (enumData.useDbEnum) {
+          // Database-level enum
+          const defaultValue = prop.default ? `, default: ${enumData.name}.${prop.default.toUpperCase().replace(/[^A-Z0-9]/g, '_')}` : '';
+          return `
+  @Column({
+    type: 'enum',
+    enum: ${enumData.name}${prop.required === false ? ', nullable: true' : ''}${prop.unique === true ? ', unique: true' : ''}${defaultValue}
+  })
+  ${key}: ${enumData.name};`;
+        } else {
+          // TypeScript-only enum (varchar column)
+          return `
+  @Column({ type: 'varchar'${prop.required === false ? ', nullable: true' : ''}${prop.unique === true ? ', unique: true' : ''}${prop.default ? `, default: '${prop.default}'` : ''} })
+  ${key}: ${enumData.name};`;
+        }
       } else {
         return `
-  @Column({ type: '${prop.type}'${prop.required === false ? ', nullable: true' : ''}${prop.unique === true ? ', unique: true' : ''} })
+  @Column({ type: '${prop.type}'${prop.required === false ? ', nullable: true' : ''}${prop.unique === true ? ', unique: true' : ''}${prop.default !== undefined ? (typeof prop.default === 'string' ? `, default: '${prop.default}'` : `, default: ${prop.default}`) : ''} })
   ${key}: ${this.getTypeScriptType(prop.type)};`;
       }
     }).join('\n')}
@@ -220,6 +255,22 @@ export class ${entityClassName} {
       imports.push(`import { ${enumImports} } from '../../enums/${table.name.toLowerCase()}-enums.enum';`);
     }
 
+    // Helper to build ApiProperty options
+    function buildApiPropertyOptions(key, prop) {
+      const options = {
+        required: prop.required === false ? false : true,
+        type: prop.type === 'varchar' || prop.type === 'text' ? 'string' : prop.type === 'int' || prop.type === 'int4' ? 'number' : prop.type === 'boolean' ? 'boolean' : prop.type,
+        example: prop.example !== undefined ? prop.example : (prop.type === 'varchar' || prop.type === 'text' ? `${key}_example` : prop.type === 'int' || prop.type === 'int4' ? 1 : prop.type === 'boolean' ? true : null),
+      };
+      if (prop.enum) {
+        options.enum = prop.enum;
+      }
+      if (prop.description) {
+        options.description = prop.description;
+      }
+      return options;
+    }
+
     const template = `${imports.join('\n')}
 
 export class Create${entityName}Dto {
@@ -228,16 +279,13 @@ export class Create${entityName}Dto {
         return `
   ${prop.required === false ? '@IsOptional()' : '@IsNotEmpty()'}
   @IsEnum(${enums[key].name})
-  @ApiProperty({ 
-    required: ${prop.required === false ? false : true},
-    enum: ${enums[key].name}
-  })
+  @ApiProperty(${JSON.stringify(buildApiPropertyOptions(key, prop))})
   ${key}: ${enums[key].name};`;
       } else {
         return `
   ${prop.required === false ? '@IsOptional()' : '@IsNotEmpty()'}
   ${this.getPropTypeValidator(prop.type)}
-  @ApiProperty({ required: ${prop.required === false ? false : true} })
+  @ApiProperty(${JSON.stringify(buildApiPropertyOptions(key, prop))})
   ${key}: ${this.getTypeScriptType(prop.type)};`;
       }
     }).join('\n')}
@@ -246,7 +294,7 @@ export class Create${entityName}Dto {
       (prop.type === 'ManyToOne' || (prop.type === 'OneToOne' && prop.isOwner === false)) ? `
   ${prop.required ? '@IsOptional()' : '@IsNotEmpty()'}
   @IsNumber()
-  @ApiProperty({ required: ${prop.required} })
+  @ApiProperty({ required: ${prop.required}, type: 'number', example: 1 })
   ${key}${prop.required === false ? "?" : ""}: number;` : ""
     ).join('\n')}
 }
@@ -257,16 +305,13 @@ export class Update${entityName}Dto {
         return `
   @IsOptional()
   @IsEnum(${enums[key].name})
-  @ApiProperty({ 
-    required: false,
-    enum: ${enums[key].name}
-  })
+  @ApiProperty(${JSON.stringify({ ...buildApiPropertyOptions(key, prop), required: false })})
   ${key}?: ${enums[key].name};`;
       } else {
         return `
   @IsOptional()
   ${this.getPropTypeValidator(prop.type)}
-  @ApiProperty({ required: false })
+  @ApiProperty(${JSON.stringify({ ...buildApiPropertyOptions(key, prop), required: false })})
   ${key}?: ${this.getTypeScriptType(prop.type)};`;
       }
     }).join('\n')}
@@ -275,22 +320,22 @@ export class Update${entityName}Dto {
       (prop.type === 'ManyToOne' || (prop.type === 'OneToOne' && prop.isOwner === false)) ? `
   @IsOptional()
   @IsNumber()
-  @ApiProperty({ required: false })
+  @ApiProperty({ required: false, type: 'number', example: 1 })
   ${key}?: number;` : ""
     ).join('\n')}
 }
 
 export class Query${entityName}Dto {
   @IsOptional()
-  @ApiProperty({ required: false })
+  @ApiProperty({ required: false, type: 'number', example: 1 })
   page?: number;
 
   @IsOptional()
-  @ApiProperty({ required: false })
+  @ApiProperty({ required: false, type: 'number', example: 10 })
   limit?: number;
 
   @IsOptional()
-  @ApiProperty({ required: false })
+  @ApiProperty({ required: false, type: 'string', example: '-id' })
   sort?: string;
 }`;
 
@@ -560,7 +605,32 @@ export class ${entityName}UseCases {
   // Generate controller with proper imports
   generateController(table) {
     const entityName = this.getPascalCase(table.name);
-
+    // Example success response for POST
+    const postExample = {
+      id: 1,
+      ...Object.fromEntries(Object.entries(table.properties).map(([key, prop]) => [key, prop.example || (prop.type === 'varchar' || prop.type === 'text' ? `${key}_example` : prop.type === 'int' || prop.type === 'int4' ? 1 : prop.type === 'boolean' ? true : null)])),
+      created_on: '2025-10-31T10:00:00Z',
+      updated_on: '2025-10-31T10:00:00Z',
+    };
+    // Example error responses
+    const validationErrorExample = {
+      statusCode: 400,
+      message: 'Validation failed',
+    };
+    const unauthorizedExample = {
+      statusCode: 401,
+      message: 'Unauthorized',
+      error: 'Unauthorized',
+    };
+    // Example GET response
+    const getExample = {
+      data: [postExample],
+      meta: {
+        total: 1,
+        page: 1,
+        limit: 10,
+      },
+    };
     const template = `
 import {
   Controller,
@@ -577,7 +647,7 @@ import {
 import { JwtAuthGuard } from 'src/infrastructure/common/guards/jwtAuth.guard';
 import { ${entityName}UseCases } from 'src/usecases/${(table.name).toLowerCase()}/${(table.name).toLowerCase()}.usecases';
 import { Create${entityName}Dto, Update${entityName}Dto, Query${entityName}Dto } from './${(table.name).toLowerCase()}.dto';
-import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
 
 @ApiTags('${(this.getPascalSpaceCase(this.getPlural(table.name)))}')
 @Controller('${this.toSnakeCase(this.getCamelCase(this.getPlural(table.name)))}')
@@ -587,24 +657,117 @@ export class ${entityName}Controller {
 
   @Post()
   @ApiOperation({ summary: 'Create ${table.name}' })
+  @ApiResponse({
+    status: 201,
+    description: '${table.name} created successfully',
+    content: {
+      'application/json': {
+        example: ${JSON.stringify(postExample, null, 2)}
+      }
+    }
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Validation failed',
+    content: {
+      'application/json': {
+        example: ${JSON.stringify(validationErrorExample, null, 2)}
+      }
+    }
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized',
+    content: {
+      'application/json': {
+        example: ${JSON.stringify(unauthorizedExample, null, 2)}
+      }
+    }
+  })
   create${entityName}(@Body() ${this.getCamelCase(table.name)}: Create${entityName}Dto) {
     return this.${this.getCamelCase(table.name)}UseCases.create${entityName}(${this.getCamelCase(table.name)});
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get ${table.name} by id' })
+  @ApiResponse({
+    status: 200,
+    description: '${table.name} retrieved successfully',
+    content: {
+      'application/json': {
+        example: ${JSON.stringify(postExample, null, 2)}
+      }
+    }
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized',
+    content: {
+      'application/json': {
+        example: ${JSON.stringify(unauthorizedExample, null, 2)}
+      }
+    }
+  })
   get${entityName}ById(@Param('id', ParseIntPipe) id: ${this.schema.char_primary_key ? 'string' : 'number'}) {
     return this.${this.getCamelCase(table.name)}UseCases.get${entityName}ById(id);
   }
 
   @Get()
   @ApiOperation({ summary: 'Get all ${this.getPlural(table.name)}' })
+  @ApiQuery({ name: 'page', type: Number, example: 1, required: false })
+  @ApiQuery({ name: 'limit', type: Number, example: 10, required: false })
+  @ApiQuery({ name: 'sort', type: String, example: '-id', required: false })
+  @ApiResponse({
+    status: 200,
+    description: '${this.getPlural(table.name)} retrieved successfully',
+    content: {
+      'application/json': {
+        example: ${JSON.stringify(getExample, null, 2)}
+      }
+    }
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized',
+    content: {
+      'application/json': {
+        example: ${JSON.stringify(unauthorizedExample, null, 2)}
+      }
+    }
+  })
   get${this.getPlural(entityName)}(@Query() query: Query${entityName}Dto) {
     return this.${this.getCamelCase(table.name)}UseCases.get${this.getPlural(entityName)}(query);
   }
 
   @Put(':id')
   @ApiOperation({ summary: 'Update ${table.name}' })
+  @ApiResponse({
+    status: 200,
+    description: '${table.name} updated successfully',
+    content: {
+      'application/json': {
+        example: ${JSON.stringify(postExample, null, 2)}
+      }
+    }
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Validation failed',
+    content: {
+      'application/json': {
+        example: ${JSON.stringify(validationErrorExample, null, 2)}
+      }
+    }
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized',
+    content: {
+      'application/json': {
+        example: ${JSON.stringify(unauthorizedExample, null, 2)}
+      }
+    }
+  })
   update${entityName}(
     @Param('id', ParseIntPipe) id: ${this.schema.char_primary_key ? 'string' : 'number'},
     @Body() ${this.getCamelCase(table.name)}: Update${entityName}Dto,
@@ -614,6 +777,24 @@ export class ${entityName}Controller {
 
   @Delete(':id')
   @ApiOperation({ summary: 'Delete ${table.name}' })
+  @ApiResponse({
+    status: 200,
+    description: '${table.name} deleted successfully',
+    content: {
+      'application/json': {
+        example: { success: true }
+      }
+    }
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized',
+    content: {
+      'application/json': {
+        example: ${JSON.stringify(unauthorizedExample, null, 2)}
+      }
+    }
+  })
   delete${entityName}(@Param('id', ParseIntPipe) id: ${this.schema.char_primary_key ? 'string' : 'number'}) {
     return this.${this.getCamelCase(table.name)}UseCases.delete${entityName}(id);
   }
@@ -624,6 +805,24 @@ export class ${entityName}Controller {
         return `
   @Get(':id/${this.toSnakeCase(this.getCamelCase(this.getPlural(key)))}')
   @ApiOperation({ summary: 'Get ${this.getPlural(key)} of ${table.name}' })
+  @ApiResponse({
+    status: 200,
+    description: '${this.getPlural(key)} retrieved successfully',
+    content: {
+      'application/json': {
+        example: ${JSON.stringify(getExample, null, 2)}
+      }
+    }
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized',
+    content: {
+      'application/json': {
+        example: ${JSON.stringify(unauthorizedExample, null, 2)}
+      }
+    }
+  })
   get${relationName}Of${entityName}(@Param('id', ParseIntPipe) id: ${this.schema.char_primary_key ? 'string' : 'number'}) {
     return this.${this.getCamelCase(table.name)}UseCases.get${relationName}Of${entityName}(id);
   }`;
@@ -640,12 +839,19 @@ export class ${entityName}Controller {
     const timestamp = Date.now();
     const tableName = this.toSnakeCase(this.getCamelCase(this.getPlural(table.name))).toLowerCase();
     const enums = this.getEnumsFromTable(table);
+    const indexes = this.getIndexesFromTable(table);
 
-    // Check if any enum properties have default values
+    // Check if any enum properties have default values or use DB enums
     const enumsWithDefaults = {};
+    const dbEnums = {};
     Object.entries(table.properties).forEach(([key, prop]) => {
-      if (prop.type === 'enum' && prop.default && enums[key]) {
-        enumsWithDefaults[key] = enums[key];
+      if (prop.type === 'enum' && enums[key]) {
+        if (prop.default) {
+          enumsWithDefaults[key] = enums[key];
+        }
+        if (enums[key].useDbEnum) {
+          dbEnums[key] = enums[key];
+        }
       }
     });
 
@@ -655,10 +861,18 @@ export class ${entityName}Controller {
       : '';
 
     const template = `
-import { MigrationInterface, QueryRunner, Table, TableForeignKey, TableColumn } from 'typeorm';
+import { MigrationInterface, QueryRunner, Table, TableForeignKey, TableColumn, TableIndex } from 'typeorm';
 ${enumImports}
 export class create${this.getPlural(this.getPascalCase(table.name))}Table${timestamp} implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
+    ${Object.keys(dbEnums).length > 0 ? `
+    // Create database-level enums
+    ${Object.entries(dbEnums).map(([key, enumData]) => `
+    await queryRunner.query(\`
+      CREATE TYPE ${enumData.dbEnumName} AS ENUM (${enumData.values.map(v => `'${v}'`).join(', ')})
+    \`);`).join('\n')}
+    ` : ''}
+
     await queryRunner.createTable(
       new Table({
         name: '${tableName}',
@@ -673,18 +887,23 @@ export class create${this.getPlural(this.getPascalCase(table.name))}Table${times
       },
           },
           ${Object.entries(table.properties).map(([key, prop]) => {
-        const columnType = prop.type === 'enum' ? 'varchar' : prop.type;
+        let columnType = prop.type;
         let defaultValue = '';
 
-        if (prop.default) {
+        if (prop.type === 'enum' && enums[key]) {
+          columnType = enums[key].useDbEnum ? enums[key].dbEnumName : 'varchar';
+        }
+
+        if (prop.default !== undefined) {
           if (prop.type === 'enum' && enums[key]) {
-            // Use enum reference for enum types
             const enumName = enums[key].name;
             const enumKey = prop.default.toUpperCase().replace(/[^A-Z0-9]/g, '_');
             defaultValue = `default: \`'\${${enumName}.${enumKey}}'\`,`;
           } else if (prop.type === 'varchar' || prop.type === 'text') {
             defaultValue = `default: "'${prop.default}'",`;
-          } else {
+          } else if (prop.type === 'boolean') {
+            defaultValue = `default: ${prop.default},`;
+          } else if (typeof prop.default === 'number') {
             defaultValue = `default: ${prop.default},`;
           }
         }
@@ -736,10 +955,35 @@ export class create${this.getPlural(this.getPascalCase(table.name))}Table${times
         }
         return '';
       }).filter(Boolean).join('\n')}
+
+    ${indexes.length > 0 ? `
+    // Create indexes
+    ${indexes.map(index => `
+    await queryRunner.createIndex(
+      '${tableName}',
+      new TableIndex({
+        name: '${index.name}',
+        columnNames: [${index.columns.map(col => `'${col}'`).join(', ')}],
+        ${index.unique ? 'isUnique: true,' : ''}
+      }),
+    );`).join('\n')}
+    ` : ''}
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
+    ${indexes.length > 0 ? `
+    // Drop indexes
+    ${indexes.map(index => `
+    await queryRunner.dropIndex('${tableName}', '${index.name}');`).join('\n')}
+    ` : ''}
+
     await queryRunner.dropTable('${tableName}');
+
+    ${Object.keys(dbEnums).length > 0 ? `
+    // Drop database-level enums
+    ${Object.entries(dbEnums).map(([key, enumData]) => `
+    await queryRunner.query(\`DROP TYPE ${enumData.dbEnumName}\`);`).join('\n')}
+    ` : ''}
   }
 }`;
 
