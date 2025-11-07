@@ -82,11 +82,25 @@ class NestjsResourceGenerator {
     Object.entries(table.properties).forEach(([key, prop]) => {
       if (prop.type === 'enum' && prop.enum) {
         const enumName = `${this.getPascalCase(table.name)}${this.getPascalCase(key)}Enum`;
+
+        // Default useDbEnum to true if not explicitly set to false
+        const useDbEnum = prop.useDbEnum !== false;
+
+        // Validate: if useDbEnum is true, dbEnumName must be provided
+        if (useDbEnum && !prop.dbEnumName) {
+          throw new Error(
+            `❌ Table "${table.name}" -> Property "${key}": ` +
+            `When enum type is used with useDbEnum=true (or not explicitly set to false), ` +
+            `"dbEnumName" must be provided. ` +
+            `Either provide "dbEnumName" or set "useDbEnum: false" to use varchar column.`
+          );
+        }
+
         enums[key] = {
           name: enumName,
           values: prop.enum,
-          useDbEnum: prop.useDbEnum || false, // Support database-level enum
-          dbEnumName: prop.useDbEnum ? `${this.toSnakeCase(table.name)}_${this.toSnakeCase(key)}_enum` : null
+          useDbEnum: useDbEnum,
+          dbEnumName: useDbEnum ? prop.dbEnumName : null
         };
       }
     });
