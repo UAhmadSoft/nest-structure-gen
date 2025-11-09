@@ -119,6 +119,28 @@ class NestjsResourceGenerator {
     }));
   }
 
+  // Helper method to extract check constraints from table
+  getCheckConstraintsFromTable(table) {
+    if (!table.constraints || !Array.isArray(table.constraints)) {
+      return [];
+    }
+    return table.constraints.filter(c => c.type === 'CHECK').map(constraint => ({
+      name: constraint.name || `chk_${table.name.toLowerCase()}_${Date.now()}`,
+      expression: constraint.expression
+    }));
+  }
+
+  // Helper method to extract unique constraints from table
+  getUniqueConstraintsFromTable(table) {
+    if (!table.constraints || !Array.isArray(table.constraints)) {
+      return [];
+    }
+    return table.constraints.filter(c => c.type === 'UNIQUE').map(constraint => ({
+      name: constraint.name || `uniq_${table.name.toLowerCase()}_${constraint.columns.join('_')}`,
+      columns: constraint.columns || []
+    }));
+  }
+
   // Generate enum file for a table
   async generateEnumFile(table) {
     const enums = this.getEnumsFromTable(table);
@@ -232,8 +254,22 @@ export class ${entityClassName} {
   ${key}: ${enumData.name};`;
         }
       } else {
+        // Handle default values properly for different types
+        let defaultClause = '';
+        if (prop.default !== undefined) {
+          if (prop.type === 'jsonb' || prop.type === 'json') {
+            // For jsonb/json, use raw SQL default - escape quotes for template literals
+            const escapedDefault = prop.default.replace(/"/g, '\\"');
+            defaultClause = `, default: () => "${escapedDefault}"`;
+          } else if (typeof prop.default === 'string') {
+            defaultClause = `, default: '${prop.default}'`;
+          } else {
+            defaultClause = `, default: ${prop.default}`;
+          }
+        }
+
         return `
-  @Column({ type: '${prop.type}'${prop.required === false ? ', nullable: true' : ''}${prop.unique === true ? ', unique: true' : ''}${prop.default !== undefined ? (typeof prop.default === 'string' ? `, default: '${prop.default}'` : `, default: ${prop.default}`) : ''} })
+  @Column({ type: '${prop.type}'${prop.required === false ? ', nullable: true' : ''}${prop.unique === true ? ', unique: true' : ''}${defaultClause} })
   ${key}: ${this.getTypeScriptType(prop.type)};`;
       }
     }).join('\n')}
@@ -854,6 +890,8 @@ export class ${entityName}Controller {
     const tableName = this.toSnakeCase(this.getCamelCase(this.getPlural(table.name))).toLowerCase();
     const enums = this.getEnumsFromTable(table);
     const indexes = this.getIndexesFromTable(table);
+    const checkConstraints = this.getCheckConstraintsFromTable(table);
+    const uniqueConstraints = this.getUniqueConstraintsFromTable(table);
 
     // Check if any enum properties have default values or use DB enums
     const enumsWithDefaults = {};
@@ -913,6 +951,9 @@ export class create${this.getPlural(this.getPascalCase(table.name))}Table${times
             const enumName = enums[key].name;
             const enumKey = prop.default.toUpperCase().replace(/[^A-Z0-9]/g, '_');
             defaultValue = `default: \`'\${${enumName}.${enumKey}}'\`,`;
+          } else if (prop.type === 'jsonb' || prop.type === 'json') {
+            // For jsonb/json, pass the raw SQL expression
+            defaultValue = `default: \`${prop.default}\`,`;
           } else if (prop.type === 'varchar' || prop.type === 'text') {
             defaultValue = `default: "'${prop.default}'",`;
           } else if (prop.type === 'boolean') {
@@ -956,6 +997,8 @@ export class create${this.getPlural(this.getPascalCase(table.name))}Table${times
 
     ${Object.entries(table.relations || {}).map(([key, rel]) => {
         if (rel.type === 'ManyToOne' || (rel.type === 'OneToOne' && rel.isOwner === false)) {
+          const onDelete = rel.onDelete || 'CASCADE';
+          const onUpdate = rel.onUpdate || 'CASCADE';
           return `
     await queryRunner.createForeignKey(
       '${tableName}',
@@ -963,12 +1006,33 @@ export class create${this.getPlural(this.getPascalCase(table.name))}Table${times
         columnNames: ['${key}'],
         referencedTableName: '${this.toSnakeCase(this.getCamelCase(this.getPlural(rel.entity)))}',
         referencedColumnNames: ['id'],
-        onDelete: 'CASCADE',
+        onDelete: '${onDelete}',
+        onUpdate: '${onUpdate}',
       }),
     );`;
         }
         return '';
       }).filter(Boolean).join('\n')}
+
+    ${uniqueConstraints.length > 0 ? `
+    // Create unique constraints
+    ${uniqueConstraints.map(constraint => `
+    await queryRunner.query(\`
+      ALTER TABLE ${tableName}
+      ADD CONSTRAINT ${constraint.name}
+      UNIQUE (${constraint.columns.join(', ')})
+    \`);`).join('\n')}
+    ` : ''}
+
+    ${checkConstraints.length > 0 ? `
+    // Create check constraints
+    ${checkConstraints.map(constraint => `
+    await queryRunner.query(\`
+      ALTER TABLE ${tableName}
+      ADD CONSTRAINT ${constraint.name}
+      CHECK (${constraint.expression})
+    \`);`).join('\n')}
+    ` : ''}
 
     ${indexes.length > 0 ? `
     // Create indexes
@@ -989,6 +1053,18 @@ export class create${this.getPlural(this.getPascalCase(table.name))}Table${times
     // Drop indexes
     ${indexes.map(index => `
     await queryRunner.dropIndex('${tableName}', '${index.name}');`).join('\n')}
+    ` : ''}
+
+    ${checkConstraints.length > 0 ? `
+    // Drop check constraints
+    ${checkConstraints.map(constraint => `
+    await queryRunner.query(\`ALTER TABLE ${tableName} DROP CONSTRAINT ${constraint.name}\`);`).join('\n')}
+    ` : ''}
+
+    ${uniqueConstraints.length > 0 ? `
+    // Drop unique constraints
+    ${uniqueConstraints.map(constraint => `
+    await queryRunner.query(\`ALTER TABLE ${tableName} DROP CONSTRAINT ${constraint.name}\`);`).join('\n')}
     ` : ''}
 
     await queryRunner.dropTable('${tableName}');

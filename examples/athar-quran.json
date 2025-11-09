@@ -1122,6 +1122,217 @@
           "required": true
         }
       }
+    },
+    {
+      "name": "Notifications",
+      "create_pagination_route": true,
+      "create_relation_get_route": false,
+      "properties": {
+        "category": {
+          "type": "enum",
+          "enum": ["HABIT", "INSIGHT", "SOCIAL", "REINFORCE", "CHALLENGE_REMINDER"],
+          "required": true,
+          "dbEnumName": "notification_category_enum"
+        },
+        "trigger_type": {
+          "type": "varchar",
+          "nullable": false
+        },
+        "content_key": {
+          "type": "varchar",
+          "nullable": false
+        },
+        "content_params": {
+          "type": "jsonb",
+          "required": false
+        },
+        "action_url": {
+          "type": "varchar",
+          "required": false
+        },
+        "scheduled_for": {
+          "type": "timestamptz",
+          "nullable": false
+        },
+        "status": {
+          "type": "enum",
+          "enum": ["PENDING", "SENT", "FAILED"],
+          "required": true,
+          "default": "PENDING",
+          "dbEnumName": "notification_status_enum"
+        },
+        "is_read": {
+          "type": "boolean",
+          "required": true,
+          "default": false
+        },
+        "read_at": {
+          "type": "timestamptz",
+          "required": false
+        }
+      },
+      "relations": {
+        "user_id": {
+          "type": "ManyToOne",
+          "entity": "Users",
+          "required": true
+        },
+        "notification_deliveries": {
+          "type": "OneToMany",
+          "entity": "NotificationDeliveries"
+        }
+      }
+    },
+    {
+      "name": "NotificationDeliveries",
+      "create_pagination_route": false,
+      "create_relation_get_route": false,
+      "properties": {
+        "channel": {
+          "type": "enum",
+          "enum": ["PUSH", "EMAIL", "WHATSAPP", "SMS"],
+          "required": true,
+          "dbEnumName": "notification_channel_enum"
+        },
+        "status": {
+          "type": "enum",
+          "enum": ["PENDING", "SENT", "DELIVERED", "FAILED"],
+          "required": true,
+          "default": "PENDING",
+          "dbEnumName": "delivery_status_enum"
+        },
+        "provider": {
+          "type": "enum",
+          "enum": ["FIREBASE", "SENDGRID", "TWILIO"],
+          "dbEnumName": "notification_provider_enum",
+          "required": false
+        },
+        "provider_message_id": {
+          "type": "varchar",
+          "required": false
+        },
+        "provider_response": {
+          "type": "jsonb",
+          "required": false
+        },
+        "attempted_at": {
+          "type": "timestamptz",
+          "required": false
+        },
+        "delivered_at": {
+          "type": "timestamptz",
+          "required": false
+        },
+        "error_message": {
+          "type": "text",
+          "required": false
+        },
+        "retry_count": {
+          "type": "integer",
+          "required": true,
+          "default": 0
+        }
+      },
+      "relations": {
+        "notification_id": {
+          "type": "ManyToOne",
+          "entity": "Notifications",
+          "required": true
+        }
+      }
+    },
+    {
+      "name": "UserNotificationChannelPreferences",
+      "create_pagination_route": false,
+      "create_relation_get_route": false,
+      "properties": {
+        "category": {
+          "type": "enum",
+          "enum": ["HABIT", "INSIGHT", "SOCIAL", "REINFORCE", "CHALLENGE_REMINDER"],
+          "dbEnumName": "user_notification_category_enum",
+          "nullable": false
+        },
+        "channel": {
+          "type": "enum",
+          "enum": ["PUSH", "EMAIL", "WHATSAPP", "SMS"],
+          "required": true,
+          "dbEnumName": "user_notification_channel_enum"
+        },
+        "enabled": {
+          "type": "boolean",
+          "required": true,
+          "default": true
+        }
+      },
+      "relations": {
+        "user_id": {
+          "type": "ManyToOne",
+          "entity": "Users",
+          "required": true
+        }
+      }
+    },
+    {
+      "name": "UserNotificationSettings",
+      "create_pagination_route": false,
+      "create_relation_get_route": false,
+      "properties": {
+        "timezone": {
+          "type": "varchar",
+          "required": true,
+          "default": "UTC"
+        },
+        "preferred_notification_time": {
+          "type": "varchar",
+          "required": false
+        }
+      },
+      "relations": {
+        "user_id": {
+          "type": "OneToOne",
+          "entity": "Users",
+          "required": true,
+          "isOwner": true
+        }
+      }
+    },
+    {
+      "name": "UserDevices",
+      "create_pagination_route": false,
+      "create_relation_get_route": false,
+      "properties": {
+        "device_token": {
+          "type": "varchar",
+          "required": true,
+          "unique": true
+        },
+        "device_type": {
+          "type": "enum",
+          "enum": ["IOS", "ANDROID", "WEB"],
+          "required": true,
+          "dbEnumName": "user_device_type_enum"
+        },
+        "device_name": {
+          "type": "varchar",
+          "required": false
+        },
+        "is_active": {
+          "type": "boolean",
+          "required": true,
+          "default": true
+        },
+        "last_used_at": {
+          "type": "timestamptz",
+          "required": false
+        }
+      },
+      "relations": {
+        "user_id": {
+          "type": "ManyToOne",
+          "entity": "Users",
+          "required": true
+        }
+      }
     }
   ]
 }

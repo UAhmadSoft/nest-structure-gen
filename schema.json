@@ -11,15 +11,65 @@
   "insert_to_modules": true,
   "tables": [
     {
-      "name": "Post",
+      "name": "TafsirInsights",
       "create_pagination_route": true,
-      "create_relation_get_route": true,
+      "create_relation_get_route": false,
       "properties": {
-        "content": {
-          "type": "varchar"
+        "insight_number": {
+          "type": "int",
+          "required": false
+        },
+        "insight_text": {
+          "type": "text",
+          "required": true
+        },
+        "category": {
+          "type": "text",
+          "required": false
+        },
+        "confidence": {
+          "type": "double precision",
+          "required": false
+        },
+        "scores": {
+          "type": "jsonb",
+          "required": true,
+          "default": "'{}'::jsonb"
         }
       },
-      "relations": {}
+      "relations": {
+        "ayah_tafsir_id": {
+          "type": "ManyToOne",
+          "entity": "AyahTafsirs",
+          "required": true,
+          "onDelete": "CASCADE",
+          "onUpdate": "CASCADE"
+        }
+      },
+      "constraints": [
+        {
+          "type": "CHECK",
+          "name": "tafsir_insights_insight_number_min",
+          "expression": "insight_number IS NULL OR insight_number >= 1"
+        },
+        {
+          "type": "CHECK",
+          "name": "tafsir_insights_confidence_range",
+          "expression": "confidence IS NULL OR (confidence >= 0 AND confidence <= 1)"
+        },
+        {
+          "type": "UNIQUE",
+          "name": "tafsir_insights_unique_per_ayah",
+          "columns": ["ayah_tafsir_id", "insight_number"]
+        }
+      ],
+      "indexes": [
+        {
+          "columns": ["ayah_tafsir_id"],
+          "unique": false,
+          "name": "idx_tafsir_insights_ayah_tafsir_id"
+        }
+      ]
     }
   ]
 }
