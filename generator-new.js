@@ -63,6 +63,11 @@ class NestjsResourceGenerator {
     return str.startsWith('_') ? str.slice(1) : str;
   };
 
+  toHyphenCase(string) {
+    let str = string.replace(/([A-Z])/g, (match) => `-${match.toLowerCase()}`);
+    return str.startsWith('-') ? str.slice(1) : str;
+  }
+
   toSingle(string) {
     return string.endsWith('ies') ? (string.slice(0, -3) + 'y') :
       string.endsWith('s') ? string.slice(0, -1) : string;
@@ -73,7 +78,7 @@ class NestjsResourceGenerator {
   }
 
   getEntityFileName(name) {
-    return `${name.toLowerCase()}.entity.ts`;
+    return `${this.toHyphenCase(name)}.entity.ts`;
   }
 
   // Helper method to extract enum names from properties
@@ -147,7 +152,8 @@ class NestjsResourceGenerator {
     if (Object.keys(enums).length === 0) return null;
 
     const entityName = this.getPascalCase(table.name);
-    const fileName = `${table.name.toLowerCase()}-enums.enum.ts`;
+    const hyphenCaseName = this.toHyphenCase(table.name);
+    const fileName = `${hyphenCaseName}-enums.enum.ts`;
 
     let enumDefinitions = [];
     let enumArrays = [];
@@ -209,7 +215,8 @@ import {
     // Add enum imports if needed
     if (Object.keys(enums).length > 0) {
       const enumImports = Object.values(enums).map(e => e.name).join(', ');
-      imports.push(`import { ${enumImports} } from '../enums/${table.name.toLowerCase()}-enums.enum';`);
+      const hyphenCaseName = this.toHyphenCase(table.name);
+      imports.push(`import { ${enumImports} } from '../enums/${hyphenCaseName}-enums.enum';`);
     }
 
     // Add relation entity imports
@@ -291,6 +298,7 @@ export class ${entityClassName} {
   // Generate DTO with proper imports and enum support
   generateDto(table) {
     const entityName = this.getPascalCase(table.name);
+    const hyphenCaseName = this.toHyphenCase(table.name);
     const enums = this.getEnumsFromTable(table);
 
     // Build imports
@@ -302,7 +310,7 @@ export class ${entityClassName} {
     // Add enum imports if needed
     if (Object.keys(enums).length > 0) {
       const enumImports = Object.values(enums).map(e => e.name).join(', ');
-      imports.push(`import { ${enumImports} } from '../../enums/${table.name.toLowerCase()}-enums.enum';`);
+      imports.push(`import { ${enumImports} } from '../../enums/${hyphenCaseName}-enums.enum';`);
     }
 
     // Helper to build ApiProperty options
@@ -395,13 +403,14 @@ export class Query${entityName}Dto {
   // Generate model with enum support
   generateModel(table) {
     const entityName = this.getPascalCase(table.name);
+    const hyphenCaseName = this.toHyphenCase(table.name);
     const enums = this.getEnumsFromTable(table);
 
     // Build imports
     const imports = [];
     if (Object.keys(enums).length > 0) {
       const enumImports = Object.values(enums).map(e => e.name).join(', ');
-      imports.push(`import { ${enumImports} } from '../../infrastructure/enums/${table.name.toLowerCase()}-enums.enum';`);
+      imports.push(`import { ${enumImports} } from '../../infrastructure/enums/${hyphenCaseName}-enums.enum';`);
     }
 
     // Add relation model imports
@@ -480,11 +489,12 @@ export class Update${entityName}Model {
   // Generate repository interface with proper imports
   generateRepositoryInterface(table) {
     const entityName = this.getPascalCase(table.name);
+    const hyphenCaseName = this.toHyphenCase(table.name);
 
     const template = `
-import { ${entityName}Model, Fetch${entityName}Model, Update${entityName}Model } from 'src/domain/models/${(table.name).toLowerCase()}.model';
+import { ${entityName}Model, Fetch${entityName}Model, Update${entityName}Model } from 'src/domain/models/${hyphenCaseName}.model';
 import { PaginatedResponse } from 'src/domain/common/interfaces/paginated-response.interface';
-import { Query${entityName}Dto } from 'src/infrastructure/controllers/${(table.name).toLowerCase()}/${(table.name).toLowerCase()}.dto';
+import { Query${entityName}Dto } from 'src/infrastructure/controllers/${hyphenCaseName}/${hyphenCaseName}.dto';
 
 export interface I${entityName} {
   create${entityName}(${this.getCamelCase(table.name)}Model: ${entityName}Model): Promise<Fetch${entityName}Model>;
@@ -507,15 +517,16 @@ export interface I${entityName} {
     const entityName = this.getPascalCase(table.name);
     const pluralEntityName = this.getPlural(entityName);
 
+    const hyphenCaseName = this.toHyphenCase(table.name);
     const template = `
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ${entityName}Model, Fetch${entityName}Model, Update${entityName}Model } from 'src/domain/models/${(table.name).toLowerCase()}.model';
-import { I${entityName} } from 'src/domain/repositories/${(table.name).toLowerCase()}.repository.interface';
-import { ${pluralEntityName} } from 'src/infrastructure/entities/${(entityName).toLowerCase()}.entity';
+import { ${entityName}Model, Fetch${entityName}Model, Update${entityName}Model } from 'src/domain/models/${hyphenCaseName}.model';
+import { I${entityName} } from 'src/domain/repositories/${hyphenCaseName}.repository.interface';
+import { ${pluralEntityName} } from 'src/infrastructure/entities/${hyphenCaseName}.entity';
 import { PaginatedResponse } from 'src/domain/common/interfaces/paginated-response.interface';
-import { Query${entityName}Dto } from 'src/infrastructure/controllers/${(table.name).toLowerCase()}/${(table.name).toLowerCase()}.dto';
+import { Query${entityName}Dto } from 'src/infrastructure/controllers/${hyphenCaseName}/${hyphenCaseName}.dto';
 
 @Injectable()
 export class ${entityName}Repository implements I${entityName} {
@@ -610,12 +621,13 @@ export class ${entityName}Repository implements I${entityName} {
   // Generate usecase with proper imports
   generateUseCase(table) {
     const entityName = this.getPascalCase(table.name);
+    const hyphenCaseName = this.toHyphenCase(table.name);
 
     const template = `
 import { Injectable } from '@nestjs/common';
-import { ${entityName}Model, Update${entityName}Model } from 'src/domain/models/${(table.name).toLowerCase()}.model';
-import { ${entityName}Repository } from 'src/infrastructure/repository/${(table.name).toLowerCase()}.repository';
-import { Query${entityName}Dto } from 'src/infrastructure/controllers/${(table.name).toLowerCase()}/${(table.name).toLowerCase()}.dto';
+import { ${entityName}Model, Update${entityName}Model } from 'src/domain/models/${hyphenCaseName}.model';
+import { ${entityName}Repository } from 'src/infrastructure/repository/${hyphenCaseName}.repository';
+import { Query${entityName}Dto } from 'src/infrastructure/controllers/${hyphenCaseName}/${hyphenCaseName}.dto';
 
 @Injectable()
 export class ${entityName}UseCases {
@@ -655,6 +667,7 @@ export class ${entityName}UseCases {
   // Generate controller with proper imports
   generateController(table) {
     const entityName = this.getPascalCase(table.name);
+    const hyphenCaseName = this.toHyphenCase(table.name);
     // Example success response for POST
     const postExample = {
       id: 1,
@@ -695,8 +708,8 @@ import {
   ParseIntPipe,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/infrastructure/common/guards/jwtAuth.guard';
-import { ${entityName}UseCases } from 'src/usecases/${(table.name).toLowerCase()}/${(table.name).toLowerCase()}.usecases';
-import { Create${entityName}Dto, Update${entityName}Dto, Query${entityName}Dto } from './${(table.name).toLowerCase()}.dto';
+import { ${entityName}UseCases } from 'src/usecases/${hyphenCaseName}/${hyphenCaseName}.usecases';
+import { Create${entityName}Dto, Update${entityName}Dto, Query${entityName}Dto } from './${hyphenCaseName}.dto';
 import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
 
 @ApiTags('${(this.getPascalSpaceCase(this.getPlural(table.name)))}')
@@ -888,6 +901,7 @@ export class ${entityName}Controller {
   generateMigration(table) {
     const timestamp = Date.now();
     const tableName = this.toSnakeCase(this.getCamelCase(this.getPlural(table.name))).toLowerCase();
+    const hyphenCaseName = this.toHyphenCase(table.name);
     const enums = this.getEnumsFromTable(table);
     const indexes = this.getIndexesFromTable(table);
     const checkConstraints = this.getCheckConstraintsFromTable(table);
@@ -909,7 +923,7 @@ export class ${entityName}Controller {
 
     // Generate enum imports if needed
     const enumImports = Object.keys(enumsWithDefaults).length > 0
-      ? `import { ${Object.values(enumsWithDefaults).map(e => e.name).join(', ')} } from 'src/infrastructure/enums/${table.name.toLowerCase()}-enums.enum';\n`
+      ? `import { ${Object.values(enumsWithDefaults).map(e => e.name).join(', ')} } from 'src/infrastructure/enums/${hyphenCaseName}-enums.enum';\n`
       : '';
 
     const template = `
@@ -1089,13 +1103,14 @@ export class create${this.getPlural(this.getPascalCase(table.name))}Table${times
       return;
     }
 
+    const hyphenCaseName = this.toHyphenCase(entityName);
     const sourceFile = this.project.addSourceFileAtPath(filePath);
     // Get relative paths for imports based on module type
     let importPath, className, additionalImports = [];
 
     switch (type) {
       case 'entity':
-        importPath = `./${(entityName).toLowerCase()}.entity`;
+        importPath = `./${hyphenCaseName}.entity`;
         className = this.getEntityClassName(entityName);
 
         // Add TypeORM import if not present
@@ -1136,7 +1151,7 @@ export class create${this.getPlural(this.getPascalCase(table.name))}Table${times
 
       case 'repository':
         const repoEntityName = this.getEntityClassName(entityName);
-        importPath = `./${(entityName).toLowerCase()}.repository`;
+        importPath = `./${hyphenCaseName}.repository`;
         className = `${entityName}Repository`;
 
 
@@ -1153,13 +1168,13 @@ export class create${this.getPlural(this.getPascalCase(table.name))}Table${times
         break;
 
       case 'usecase':
-        importPath = `./${(entityName).toLowerCase()}/${(entityName).toLowerCase()}.usecases`;
+        importPath = `./${hyphenCaseName}/${hyphenCaseName}.usecases`;
         className = `${entityName}UseCases`;
         break;
 
 
       case 'controller':
-        importPath = `./${(entityName).toLowerCase()}/${(entityName).toLowerCase()}.controller`;
+        importPath = `./${hyphenCaseName}/${hyphenCaseName}.controller`;
         className = `${entityName}Controller`;
 
 
@@ -1477,14 +1492,15 @@ export interface PaginatedResponse<T> {
 
   // Create directories
   createDirectoriesIfNeeded(tableName) {
+    const hyphenCaseName = this.toHyphenCase(tableName);
     const directories = [
       path.join(this.schema.url, 'infrastructure/entities'),
       path.join(this.schema.url, 'infrastructure/repository'),
-      path.join(this.schema.url, 'infrastructure/controllers', tableName.toLowerCase()),
+      path.join(this.schema.url, 'infrastructure/controllers', hyphenCaseName),
       path.join(this.schema.url, 'infrastructure/enums'),
       path.join(this.schema.url, 'domain/models'),
       path.join(this.schema.url, 'domain/repositories'),
-      path.join(this.schema.url, 'usecases', tableName.toLowerCase()),
+      path.join(this.schema.url, 'usecases', hyphenCaseName),
       path.join(this.schema.url, '../database/migrations'),
     ];
 
@@ -1624,6 +1640,8 @@ export interface PaginatedResponse<T> {
         }
 
         // Generate all files
+        const hyphenCaseName = this.toHyphenCase(table.name);
+        const pluralHyphenCaseName = this.toHyphenCase(this.getPlural(table.name));
         const files = {
           entity: {
             content: await this.generateEntity(table),
@@ -1631,36 +1649,39 @@ export interface PaginatedResponse<T> {
           },
           dto: {
             content: await this.generateDto(table),
-            path: path.join(this.schema.url, 'infrastructure/controllers', table.name.toLowerCase(), `${table.name.toLowerCase()}.dto.ts`)
+            path: path.join(this.schema.url, 'infrastructure/controllers', hyphenCaseName, `${hyphenCaseName}.dto.ts`)
           },
           model: {
             content: await this.generateModel(table),
-            path: path.join(this.schema.url, 'domain/models', `${table.name.toLowerCase()}.model.ts`)
+            path: path.join(this.schema.url, 'domain/models', `${hyphenCaseName}.model.ts`)
           },
           repositoryInterface: {
             content: await this.generateRepositoryInterface(table),
-            path: path.join(this.schema.url, 'domain/repositories', `${table.name.toLowerCase()}.repository.interface.ts`)
+            path: path.join(this.schema.url, 'domain/repositories', `${hyphenCaseName}.repository.interface.ts`)
           },
           repository: {
             content: await this.generateRepository(table),
-            path: path.join(this.schema.url, 'infrastructure/repository', `${table.name.toLowerCase()}.repository.ts`)
+            path: path.join(this.schema.url, 'infrastructure/repository', `${hyphenCaseName}.repository.ts`)
           },
           usecase: {
             content: await this.generateUseCase(table),
-            path: path.join(this.schema.url, 'usecases', table.name.toLowerCase(), `${table.name.toLowerCase()}.usecases.ts`)
+            path: path.join(this.schema.url, 'usecases', hyphenCaseName, `${hyphenCaseName}.usecases.ts`)
           },
           controller: {
             content: await this.generateController(table),
-            path: path.join(this.schema.url, 'infrastructure/controllers', table.name.toLowerCase(), `${table.name.toLowerCase()}.controller.ts`)
+            path: path.join(this.schema.url, 'infrastructure/controllers', hyphenCaseName, `${hyphenCaseName}.controller.ts`)
           },
           migration: {
             content: await this.generateMigration(table),
-            path: path.join(this.schema.url, '../database/migrations', `${Date.now()}-create-${this.getPlural(table.name).toLowerCase()}-table.ts`)
+            path: path.join(this.schema.url, '../database/migrations', `${Date.now()}-create-${pluralHyphenCaseName}-table.ts`)
           }
         };
 
         // Write files
         for (const [type, { content, path: filePath }] of Object.entries(files)) {
+          // Create directory if it doesn't exist
+          const dir = path.dirname(filePath);
+          fs.mkdirSync(dir, { recursive: true });
           fs.writeFileSync(filePath, content);
           this.log.file(`Created: ${path.basename(filePath)}`);
         }

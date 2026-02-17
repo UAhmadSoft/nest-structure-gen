@@ -1,5 +1,5 @@
 {
-  "root": "D:/transworls-projects/orion-backend",
+  "root": "D:/projects/authar-quran-api",
   "paths": {
     "src": "/src",
     "entity_module": "/src/infrastructure/entities/db.ts",
@@ -11,32 +11,57 @@
   "insert_to_modules": true,
   "tables": [
     {
-      "name": "InvoiceTemplates",
-      "create_pagination_route": false,
+      "name": "EngagementSignals",
+      "create_pagination_route": true,
       "create_relation_get_route": false,
       "properties": {
-        "type": {
-          "type": "varchar"
+        "card_type": {
+          "type": "enum",
+          "enum": ["reflection", "challenge", "quiz"],
+          "nullable": false,
+          "dbEnumName": "engagement_signals_card_type_enum"
         },
-        "html": {
-          "type": "text"
-        },
-        "version": {
+        "card_id": {
           "type": "int4",
-          "default": 1
+          "nullable": false,
+          "comment": "ID of the reflection, challenge, or quiz"
         },
-        "is_active": {
-          "type": "boolean"
+        "action_type": {
+          "type": "enum",
+          "enum": ["liked", "replied", "started", "completed", "attempted"],
+          "nullable": false,
+          "dbEnumName": "engagement_signals_action_type_enum"
         },
-        "description": {
-          "type": "varchar"
-        },
-        "created_by": {
-          "type": "int4"
+        "card_owner_id": {
+          "type": "int4",
+          "nullable": false,
+          "comment": "User ID who created the card — denormalized for fast filtering"
         }
       },
-      "relations": {},
-      "indexes": []
+      "relations": {
+        "actor_id": {
+          "type": "ManyToOne",
+          "entity": "Users",
+          "required": true,
+          "onDelete": "CASCADE"
+        }
+      },
+      "indexes": [
+        {
+          "columns": ["card_type", "card_id"],
+          "name": "idx_engagement_signals_card"
+        },
+        {
+          "columns": ["card_owner_id"],
+          "name": "idx_engagement_signals_card_owner"
+        },
+        {
+          "columns": ["card_type", "card_id", "actor_id", "action_type"],
+          "unique": true,
+          "name": "idx_engagement_signals_unique_action"
+        }
+      ],
+      "constraints": []
     }
   ]
 }
