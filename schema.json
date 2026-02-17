@@ -1,5 +1,5 @@
 {
-  "root": "D:/projects/authar-quran-api",
+  "root": "D:/transworls-projects/orion-backend",
   "paths": {
     "src": "/src",
     "entity_module": "/src/infrastructure/entities/db.ts",
@@ -11,65 +11,32 @@
   "insert_to_modules": true,
   "tables": [
     {
-      "name": "TafsirInsights",
-      "create_pagination_route": true,
+      "name": "InvoiceTemplates",
+      "create_pagination_route": false,
       "create_relation_get_route": false,
       "properties": {
-        "insight_number": {
-          "type": "int",
-          "required": false
+        "type": {
+          "type": "varchar"
         },
-        "insight_text": {
-          "type": "text",
-          "required": true
+        "html": {
+          "type": "text"
         },
-        "category": {
-          "type": "text",
-          "required": false
+        "version": {
+          "type": "int4",
+          "default": 1
         },
-        "confidence": {
-          "type": "double precision",
-          "required": false
+        "is_active": {
+          "type": "boolean"
         },
-        "scores": {
-          "type": "jsonb",
-          "required": true,
-          "default": "'{}'::jsonb"
+        "description": {
+          "type": "varchar"
+        },
+        "created_by": {
+          "type": "int4"
         }
       },
-      "relations": {
-        "ayah_tafsir_id": {
-          "type": "ManyToOne",
-          "entity": "AyahTafsirs",
-          "required": true,
-          "onDelete": "CASCADE",
-          "onUpdate": "CASCADE"
-        }
-      },
-      "constraints": [
-        {
-          "type": "CHECK",
-          "name": "tafsir_insights_insight_number_min",
-          "expression": "insight_number IS NULL OR insight_number >= 1"
-        },
-        {
-          "type": "CHECK",
-          "name": "tafsir_insights_confidence_range",
-          "expression": "confidence IS NULL OR (confidence >= 0 AND confidence <= 1)"
-        },
-        {
-          "type": "UNIQUE",
-          "name": "tafsir_insights_unique_per_ayah",
-          "columns": ["ayah_tafsir_id", "insight_number"]
-        }
-      ],
-      "indexes": [
-        {
-          "columns": ["ayah_tafsir_id"],
-          "unique": false,
-          "name": "idx_tafsir_insights_ayah_tafsir_id"
-        }
-      ]
+      "relations": {},
+      "indexes": []
     }
   ]
 }

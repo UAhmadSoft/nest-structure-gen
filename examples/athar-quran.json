@@ -512,12 +512,7 @@
           "type": "enum",
           "length": 50,
           "required": true,
-          "enum": [
-            "MEDITATION_AND_CONTEMPLATION",
-            "READING_SESSIONS",
-            "COMPLETE_QURAN",
-            "UNDERSTANDING_AND_LEARNING"
-          ]
+          "enum": ["MEDITATION_AND_CONTEMPLATION", "READING_SESSIONS", "COMPLETE_QURAN", "UNDERSTANDING_AND_LEARNING"]
         },
         "preferred_reminder_time": {
           "type": "varchar",
@@ -1333,6 +1328,570 @@
           "required": true
         }
       }
+    },
+    {
+      "name": "UserActivityLog",
+      "create_pagination_route": true,
+      "create_relation_get_route": false,
+      "properties": {
+        "action_type": {
+          "type": "enum",
+          "enum": ["CREATE", "UPDATE", "DELETE", "READ", "LOGIN", "LOGOUT"],
+          "required": true,
+          "useDbEnum": true,
+          "dbEnumName": "user_activity_logs_action_type_enum"
+        },
+        "resource_type": {
+          "type": "varchar",
+          "required": false
+        },
+        "resource_id": {
+          "type": "int",
+          "required": false
+        },
+        "endpoint": {
+          "type": "varchar",
+          "required": false
+        },
+        "http_method": {
+          "type": "enum",
+          "enum": ["GET", "POST", "PUT", "DELETE", "PATCH"],
+          "required": false,
+          "useDbEnum": true,
+          "dbEnumName": "user_activity_logs_http_method_enum"
+        },
+        "request_payload": {
+          "type": "jsonb",
+          "required": false
+        },
+        "response_status": {
+          "type": "int",
+          "required": false
+        },
+        "response_payload": {
+          "type": "jsonb",
+          "required": false
+        },
+        "ip_address": {
+          "type": "varchar",
+          "required": false
+        },
+        "user_agent": {
+          "type": "text",
+          "required": false
+        },
+        "metadata": {
+          "type": "jsonb",
+          "required": false,
+          "default": "'{}'::jsonb"
+        }
+      },
+      "relations": {
+        "user_id": {
+          "type": "ManyToOne",
+          "entity": "Users",
+          "required": false,
+          "onDelete": "SET NULL",
+          "onUpdate": "CASCADE"
+        }
+      },
+      "indexes": [
+        {
+          "columns": ["user_id"],
+          "unique": false,
+          "name": "idx_user_activity_logs_user_id"
+        },
+        {
+          "columns": ["action_type"],
+          "unique": false,
+          "name": "idx_user_activity_logs_action_type"
+        },
+        {
+          "columns": ["resource_type"],
+          "unique": false,
+          "name": "idx_user_activity_logs_resource_type"
+        },
+        {
+          "columns": ["created_on"],
+          "unique": false,
+          "name": "idx_user_activity_logs_created_on"
+        }
+      ]
+    },
+    {
+      "name": "ImportJobs",
+      "create_pagination_route": true,
+      "create_relation_get_route": true,
+      "properties": {
+        "resource_type": {
+          "type": "enum",
+          "enum": ["tafsir", "translation", "recitation"],
+          "nullable": false,
+          "dbEnumName": "import_job_resource_type_enum"
+        },
+        "qul_resource_id": {
+          "type": "int",
+          "nullable": false
+        },
+        "resource_slug": {
+          "type": "varchar",
+          "nullable": false
+        },
+        "resource_name": {
+          "type": "varchar",
+          "nullable": false
+        },
+        "status": {
+          "type": "enum",
+          "enum": ["pending", "downloading", "extracting", "importing", "completed", "failed"],
+          "nullable": false,
+          "default": "pending",
+          "dbEnumName": "import_job_status_enum"
+        },
+        "progress_percentage": {
+          "type": "int",
+          "nullable": false,
+          "default": 0
+        },
+        "current_stage": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "error_message": {
+          "type": "text",
+          "nullable": true
+        },
+        "started_at": {
+          "type": "timestamp",
+          "nullable": true
+        },
+        "completed_at": {
+          "type": "timestamp",
+          "nullable": true
+        }
+      },
+      "relations": {
+        "created_by_id": {
+          "type": "ManyToOne",
+          "entity": "Users",
+          "required": true
+        },
+        "logs": {
+          "type": "OneToMany",
+          "entity": "ImportLogs",
+          "required": false
+        }
+      }
+    },
+    {
+      "name": "ImportLogs",
+      "create_pagination_route": true,
+      "create_relation_get_route": true,
+      "properties": {
+        "level": {
+          "type": "enum",
+          "enum": ["info", "warning", "error"],
+          "nullable": false,
+          "default": "info",
+          "dbEnumName": "import_log_level_enum"
+        },
+        "message": {
+          "type": "text",
+          "nullable": false
+        },
+        "metadata": {
+          "type": "jsonb",
+          "nullable": true
+        }
+      },
+      "relations": {
+        "import_job_id": {
+          "type": "ManyToOne",
+          "entity": "ImportJobs",
+          "required": true
+        }
+      }
+    },
+    {
+      "name": "UserXp",
+      "create_pagination_route": false,
+      "create_relation_get_route": false,
+      "properties": {
+        "total_xp": {
+          "type": "int4",
+          "default": 0
+        },
+        "current_phase": {
+          "type": "int4",
+          "default": 1,
+          "comment": "1-7 phases"
+        },
+        "current_level": {
+          "type": "int4",
+          "default": 1,
+          "comment": "1-4 levels per phase"
+        },
+        "phase_xp": {
+          "type": "int4",
+          "default": 0,
+          "comment": "XP in current phase"
+        }
+      },
+      "relations": {
+        "user_id": {
+          "type": "OneToOne",
+          "entity": "Users",
+          "required": true,
+          "isOwner": false
+        }
+      }
+    },
+    {
+      "name": "XpTransactions",
+      "create_pagination_route": true,
+      "create_relation_get_route": false,
+      "properties": {
+        "action_type": {
+          "type": "enum",
+          "enum": ["DAILY_READING", "REFLECTION", "QUIZ", "ASK_QUESTION", "CREATE_CHALLENGE", "COMPLETE_CHALLENGE", "INVITE_FRIEND", "BADGE_EARNED", "FULL_QURAN", "JUZ_COMPLETED", "STREAK_BONUS"],
+          "required": true,
+          "dbEnumName": "xp_transaction_action_type_enum"
+        },
+        "xp_amount": {
+          "type": "int4",
+          "required": true
+        },
+        "description": {
+          "type": "text",
+          "required": false
+        },
+        "reference_id": {
+          "type": "int4",
+          "required": false,
+          "comment": "ID of related entity (session, reflection, etc)"
+        },
+        "reference_type": {
+          "type": "varchar",
+          "length": 50,
+          "required": false,
+          "comment": "Type of reference (session, reflection, quiz, etc)"
+        }
+      },
+      "relations": {
+        "user_id": {
+          "type": "ManyToOne",
+          "entity": "Users",
+          "required": true
+        }
+      }
+    },
+    {
+      "name": "Badges",
+      "create_pagination_route": true,
+      "create_relation_get_route": false,
+      "properties": {
+        "name": {
+          "type": "varchar",
+          "length": 100,
+          "required": true
+        },
+        "description": {
+          "type": "text",
+          "required": true
+        },
+        "category": {
+          "type": "enum",
+          "enum": ["ACHIEVEMENT", "PARTICIPATION", "STREAK", "REFERRAL", "SKILLS", "SEASONAL"],
+          "required": true,
+          "dbEnumName": "badge_category_enum"
+        },
+        "icon_url": {
+          "type": "varchar",
+          "length": 255,
+          "required": false
+        },
+        "xp_reward": {
+          "type": "int4",
+          "required": true
+        },
+        "is_repeatable": {
+          "type": "boolean",
+          "default": false
+        },
+        "condition_type": {
+          "type": "enum",
+          "enum": [
+            "full_quran",
+            "juz_complete",
+            "quiz_passed",
+            "challenge_completed",
+            "reflection_written",
+            "question_posted",
+            "challenge_created",
+            "streak_days",
+            "invite_accepted",
+            "community_created"
+          ],
+          "required": true,
+          "dbEnumName": "badge_condition_type_enum"
+        },
+        "condition_value": {
+          "type": "int4",
+          "required": false
+        },
+        "sort_order": {
+          "type": "int4",
+          "default": 0
+        },
+        "is_active": {
+          "type": "boolean",
+          "default": true
+        }
+      },
+      "relations": {
+        "user_badges": {
+          "type": "OneToMany",
+          "entity": "UserBadges"
+        }
+      }
+    },
+    {
+      "name": "GraceCards",
+      "create_pagination_route": false,
+      "create_relation_get_route": false,
+      "properties": {
+        "cards_available": {
+          "type": "int4",
+          "default": 0,
+          "comment": "Max 7"
+        },
+        "cards_used": {
+          "type": "int4",
+          "default": 0
+        },
+        "last_weekly_grant": {
+          "type": "date",
+          "required": false,
+          "comment": "Last date weekly cards were granted"
+        }
+      },
+      "relations": {
+        "user_id": {
+          "type": "OneToOne",
+          "entity": "Users",
+          "required": true,
+          "isOwner": false
+        }
+      }
+    },
+    {
+      "name": "UserBadges",
+      "create_pagination_route": true,
+      "create_relation_get_route": false,
+      "properties": {
+        "earned_at": {
+          "type": "timestamptz",
+          "default": "NOW()"
+        },
+        "progress_value": {
+          "type": "int4",
+          "default": 0,
+          "comment": "For repeatable badges"
+        }
+      },
+      "relations": {
+        "user_id": {
+          "type": "ManyToOne",
+          "entity": "Users",
+          "required": true
+        },
+        "badge_id": {
+          "type": "ManyToOne",
+          "entity": "Badges",
+          "required": true
+        }
+      },
+      "constraints": [
+        {
+          "type": "UNIQUE",
+          "name": "user_badges_user_id_badge_id_unique",
+          "columns": ["user_id", "badge_id"]
+        }
+      ]
+    },
+    {
+      "name": "TafsirInsights",
+      "create_pagination_route": true,
+      "create_relation_get_route": false,
+      "properties": {
+        "insight_number": {
+          "type": "int",
+          "required": false
+        },
+        "insight_text": {
+          "type": "text",
+          "required": true
+        },
+        "category": {
+          "type": "text",
+          "required": false
+        },
+        "confidence": {
+          "type": "double precision",
+          "required": false
+        },
+        "scores": {
+          "type": "jsonb",
+          "required": true,
+          "default": "'{}'::jsonb"
+        }
+      },
+      "relations": {
+        "ayah_tafsir_id": {
+          "type": "ManyToOne",
+          "entity": "AyahTafsirs",
+          "required": true,
+          "onDelete": "CASCADE",
+          "onUpdate": "CASCADE"
+        }
+      },
+      "constraints": [
+        {
+          "type": "CHECK",
+          "name": "tafsir_insights_insight_number_min",
+          "expression": "insight_number IS NULL OR insight_number >= 1"
+        },
+        {
+          "type": "CHECK",
+          "name": "tafsir_insights_confidence_range",
+          "expression": "confidence IS NULL OR (confidence >= 0 AND confidence <= 1)"
+        },
+        {
+          "type": "UNIQUE",
+          "name": "tafsir_insights_unique_per_ayah",
+          "columns": ["ayah_tafsir_id", "insight_number"]
+        }
+      ],
+      "indexes": [
+        {
+          "columns": ["ayah_tafsir_id"],
+          "unique": false,
+          "name": "idx_tafsir_insights_ayah_tafsir_id"
+        }
+      ]
+    },
+    {
+      "name": "ChallengesCommunities",
+      "create_pagination_route": false,
+      "create_relation_get_route": false,
+      "properties": {
+        "shared_at": {
+          "type": "timestamptz",
+          "required": true,
+          "default": "NOW()",
+          "comment": "When challenge was shared to this community"
+        }
+      },
+      "relations": {
+        "challenge_id": {
+          "type": "ManyToOne",
+          "entity": "Challenges",
+          "required": true,
+          "onDelete": "CASCADE"
+        },
+        "community_id": {
+          "type": "ManyToOne",
+          "entity": "Communities",
+          "required": true,
+          "onDelete": "CASCADE"
+        }
+      }
+    },
+    {
+      "name": "QuizzesCommunities",
+      "create_pagination_route": false,
+      "create_relation_get_route": false,
+      "properties": {
+        "shared_at": {
+          "type": "timestamptz",
+          "required": true,
+          "default": "NOW()",
+          "comment": "When quiz was shared to this community"
+        }
+      },
+      "relations": {
+        "quiz_id": {
+          "type": "ManyToOne",
+          "entity": "Quizzes",
+          "required": true,
+          "onDelete": "CASCADE"
+        },
+        "community_id": {
+          "type": "ManyToOne",
+          "entity": "Communities",
+          "required": true,
+          "onDelete": "CASCADE"
+        }
+      }
+    },
+    {
+      "name": "ReflectionsCommunities",
+      "create_pagination_route": false,
+      "create_relation_get_route": false,
+      "properties": {
+        "shared_at": {
+          "type": "timestamptz",
+          "required": true,
+          "default": "NOW()",
+          "comment": "When reflection was shared to this community"
+        }
+      },
+      "relations": {
+        "reflection_id": {
+          "type": "ManyToOne",
+          "entity": "Reflections",
+          "required": true,
+          "onDelete": "CASCADE"
+        },
+        "community_id": {
+          "type": "ManyToOne",
+          "entity": "Communities",
+          "required": true,
+          "onDelete": "CASCADE"
+        }
+      }
+    },
+    {
+      "name": "SessionCompletions",
+      "create_pagination_route": true,
+      "create_relation_get_route": true,
+      "properties": {
+        "time_spent_seconds": {
+          "type": "double precision"
+        },
+        "completed_at": {
+          "type": "timestamptz"
+        }
+      },
+      "relations": {
+        "session_id": {
+          "type": "ManyToOne",
+          "entity": "Session",
+          "required": true
+        },
+        "user_id": {
+          "type": "ManyToOne",
+          "entity": "User",
+          "required": true
+        }
+      },
+      "constraints": [
+        {
+          "type": "UNIQUE",
+          "name": "UQ_SessionCompletions_Session_User",
+          "columns": ["session_id", "user_id"]
+        }
+      ]
     }
   ]
 }
