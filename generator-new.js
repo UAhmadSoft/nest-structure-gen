@@ -224,7 +224,8 @@ import {
     Object.entries(table.relations || {}).forEach(([key, rel]) => {
       if (rel.entity) {
         const relatedEntity = this.getEntityClassName(rel.entity);
-        relationImports.add(`import { ${relatedEntity} } from './${rel.entity.toLowerCase()}.entity';`);
+        const hyphenCaseEntity = this.toHyphenCase(rel.entity);
+        relationImports.add(`import { ${relatedEntity} } from './${hyphenCaseEntity}.entity';`);
       }
     });
     imports.push(...Array.from(relationImports));
@@ -417,8 +418,8 @@ export class Query${entityName}Dto {
     const relationImports = new Set();
     Object.entries(table.relations || {}).forEach(([key, rel]) => {
       if (rel.entity) {
-        const entityFileName = rel.entity.toLowerCase();
-        const relationFileName = `${this.schema.entities_folder}/${entityFileName}.entity`;
+        const hyphenCaseEntity = this.toHyphenCase(rel.entity);
+        const relationFileName = `${this.schema.entities_folder}/${hyphenCaseEntity}.entity`;
         const entityClassName = this.getEntityClassName(rel.entity || key);
 
         relationImports.add(`import { ${this.getPlural(this.getPascalCase(rel.entity))} } from '${relationFileName}';`);

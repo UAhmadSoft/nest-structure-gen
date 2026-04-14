@@ -1892,6 +1892,449 @@
           "columns": ["session_id", "user_id"]
         }
       ]
+    },
+    {
+      "name": "EngagementSignals",
+      "create_pagination_route": true,
+      "create_relation_get_route": false,
+      "properties": {
+        "card_type": {
+          "type": "enum",
+          "enum": ["reflection", "challenge", "quiz"],
+          "nullable": false,
+          "dbEnumName": "engagement_signals_card_type_enum"
+        },
+        "card_id": {
+          "type": "int4",
+          "nullable": false,
+          "comment": "ID of the reflection, challenge, or quiz"
+        },
+        "action_type": {
+          "type": "enum",
+          "enum": ["liked", "replied", "started", "completed", "attempted"],
+          "nullable": false,
+          "dbEnumName": "engagement_signals_action_type_enum"
+        },
+        "card_owner_id": {
+          "type": "int4",
+          "nullable": false,
+          "comment": "User ID who created the card — denormalized for fast filtering"
+        }
+      },
+      "relations": {
+        "actor_id": {
+          "type": "ManyToOne",
+          "entity": "Users",
+          "required": true,
+          "onDelete": "CASCADE"
+        }
+      },
+      "indexes": [
+        {
+          "columns": ["card_type", "card_id"],
+          "name": "idx_engagement_signals_card"
+        },
+        {
+          "columns": ["card_owner_id"],
+          "name": "idx_engagement_signals_card_owner"
+        },
+        {
+          "columns": ["card_type", "card_id", "actor_id", "action_type"],
+          "unique": true,
+          "name": "idx_engagement_signals_unique_action"
+        }
+      ],
+      "constraints": []
+    },
+    {
+      "name": "GhareebWordOccurrences",
+      "create_pagination_route": true,
+      "create_relation_get_route": true,
+      "properties": {
+        "word_or_phrase": {
+          "type": "varchar",
+          "length": 500,
+          "nullable": false,
+          "comment": "Verbatim Arabic word/phrase extracted from the source text"
+        },
+        "source_type": {
+          "type": "enum",
+          "enum": ["ayah", "knp"],
+          "nullable": false,
+          "dbEnumName": "ghareeb_word_occurrences_source_type_enum"
+        },
+        "status": {
+          "type": "enum",
+          "enum": ["identified", "accepted", "rejected"],
+          "nullable": false,
+          "default": "identified",
+          "dbEnumName": "ghareeb_word_occurrences_status_enum"
+        },
+        "rejection_reason": {
+          "type": "varchar",
+          "length": 500,
+          "nullable": true
+        },
+        "reviewed_at": {
+          "type": "timestamptz",
+          "nullable": true
+        },
+        "batch_id": {
+          "type": "varchar",
+          "length": 100,
+          "nullable": true,
+          "comment": "Groups records from the same LLM batch call"
+        },
+        "llm_model": {
+          "type": "varchar",
+          "length": 100,
+          "nullable": true
+        },
+        "meta": {
+          "type": "jsonb",
+          "nullable": true,
+          "default": "'{}'::jsonb",
+          "comment": "Raw LLM response and any extra data"
+        }
+      },
+      "relations": {
+        "ayah_id": {
+          "type": "ManyToOne",
+          "entity": "Ayahs",
+          "required": false,
+          "onDelete": "CASCADE"
+        },
+        "knowledge_point_id": {
+          "type": "ManyToOne",
+          "entity": "KnowledgePointsEntity",
+          "required": false,
+          "onDelete": "CASCADE"
+        },
+        "reviewed_by_id": {
+          "type": "ManyToOne",
+          "entity": "Users",
+          "required": false,
+          "onDelete": "SET NULL"
+        }
+      },
+      "indexes": [
+        {
+          "columns": ["ayah_id"],
+          "name": "idx_ghareeb_word_occurrences_ayah_id"
+        },
+        {
+          "columns": ["knowledge_point_id"],
+          "name": "idx_ghareeb_word_occurrences_knp_id"
+        },
+        {
+          "columns": ["status"],
+          "name": "idx_ghareeb_word_occurrences_status"
+        },
+        {
+          "columns": ["source_type", "status"],
+          "name": "idx_ghareeb_word_occurrences_source_status"
+        },
+        {
+          "columns": ["batch_id"],
+          "name": "idx_ghareeb_word_occurrences_batch_id"
+        },
+        {
+          "columns": ["word_or_phrase", "source_type"],
+          "name": "idx_ghareeb_word_occurrences_word_source"
+        }
+      ],
+      "constraints": [
+        {
+          "type": "CHECK",
+          "name": "ghareeb_word_occurrences_source_check",
+          "expression": "(source_type = 'ayah' AND ayah_id IS NOT NULL AND knowledge_point_id IS NULL) OR (source_type = 'knp' AND knowledge_point_id IS NOT NULL AND ayah_id IS NULL)"
+        }
+      ]
+    },
+    {
+      "name": "ShareLinks",
+      "create_pagination_route": true,
+      "create_relation_get_route": false,
+      "properties": {
+        "token": {
+          "type": "varchar",
+          "length": 64,
+          "nullable": false,
+          "unique": true,
+          "comment": "Unique opaque token embedded in the shareable URL"
+        },
+        "resource_type": {
+          "type": "varchar",
+          "length": 100,
+          "nullable": false,
+          "comment": "Type of resource being shared e.g. knp, challenge, community, paid_invite"
+        },
+        "resource_id": {
+          "type": "int4",
+          "nullable": true,
+          "comment": "ID of the resource. Null for non-content links like paid_invite."
+        },
+        "redeemed_at": {
+          "type": "timestamptz",
+          "nullable": true,
+          "comment": "Only used for paid_invite — marks when the invitee redeemed the link."
+        },
+        "meta": {
+          "type": "jsonb",
+          "nullable": true,
+          "default": "'{}'::jsonb",
+          "comment": "Extra data: open_count, inviter name snapshot, etc."
+        }
+      },
+      "relations": {
+        "user_id": {
+          "type": "ManyToOne",
+          "entity": "Users",
+          "required": true,
+          "onDelete": "CASCADE"
+        },
+        "redeemed_by_id": {
+          "type": "ManyToOne",
+          "entity": "Users",
+          "required": false,
+          "onDelete": "SET NULL",
+          "comment": "Only populated for paid_invite on redemption."
+        }
+      },
+      "indexes": [
+        {
+          "columns": ["token"],
+          "name": "idx_share_links_token",
+          "unique": true
+        },
+        {
+          "columns": ["resource_type", "resource_id"],
+          "name": "idx_share_links_resource"
+        },
+        {
+          "columns": ["user_id"],
+          "name": "idx_share_links_user_id"
+        }
+      ]
+    },
+    {
+      "name": "GhareebWordDefinitions",
+      "create_pagination_route": true,
+      "create_relation_get_route": false,
+      "properties": {
+        "llm_generated_text": {
+          "type": "text",
+          "comment": "Raw definition generated by LLM from the top 3 KNP candidates"
+        },
+        "final_text": {
+          "type": "text",
+          "required": false,
+          "comment": "Admin approved/edited version — this is what gets shown to the user"
+        },
+        "source_knp_ids": {
+          "type": "jsonb",
+          "default": "'[]'::jsonb",
+          "comment": "Array of KNP IDs used to generate this definition e.g. [4060, 4063, 4061]"
+        },
+        "status": {
+          "type": "enum",
+          "enum": ["pending_review", "approved", "rejected"],
+          "default": "pending_review",
+          "dbEnumName": "ghareeb_word_definitions_status_enum"
+        },
+        "llm_model": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "batch_id": {
+          "type": "varchar",
+          "nullable": true
+        },
+        "reviewed_at": {
+          "type": "timestamptz",
+          "nullable": true
+        },
+        "meta": {
+          "type": "jsonb",
+          "required": false,
+          "default": "'{}'::jsonb"
+        }
+      },
+      "relations": {
+        "ghareeb_word_id": {
+          "type": "ManyToOne",
+          "entity": "GhareebWordOccurrences",
+          "required": true,
+          "onDelete": "CASCADE"
+        },
+        "reviewed_by_id": {
+          "type": "ManyToOne",
+          "entity": "Users",
+          "required": false,
+          "onDelete": "SET NULL"
+        },
+        "ghareeb_word_definition_applications": {
+          "type": "OneToMany",
+          "entity": "GhareebWordDefinitionApplications"
+        }
+      },
+      "indexes": [
+        {
+          "columns": ["ghareeb_word_id"],
+          "name": "idx_ghareeb_word_definitions_word_id"
+        },
+        {
+          "columns": ["status"],
+          "name": "idx_ghareeb_word_definitions_status"
+        },
+        {
+          "columns": ["ghareeb_word_id", "status"],
+          "name": "idx_ghareeb_word_definitions_word_status"
+        }
+      ],
+      "constraints": [
+        {
+          "type": "UNIQUE",
+          "name": "ghareeb_word_definitions_word_unique",
+          "columns": ["ghareeb_word_id"]
+        }
+      ]
+    },
+    {
+      "name": "GhareebWordDefinitionApplications",
+      "create_pagination_route": true,
+      "create_relation_get_route": false,
+      "properties": {
+        "custom_text": {
+          "type": "text",
+          "required": false,
+          "comment": "Admin-edited version of the definition for this specific occurrence. Null means copied as-is."
+        },
+        "is_custom": {
+          "type": "boolean",
+          "default": false,
+          "comment": "False = definition copied as-is from source. True = admin edited before applying."
+        },
+        "applied_at": {
+          "type": "timestamptz",
+          "nullable": true
+        }
+      },
+      "relations": {
+        "definition_id": {
+          "type": "ManyToOne",
+          "entity": "GhareebWordDefinitions",
+          "required": true,
+          "onDelete": "CASCADE"
+        },
+        "ghareeb_word_id": {
+          "type": "ManyToOne",
+          "entity": "GhareebWordOccurrences",
+          "required": true,
+          "onDelete": "CASCADE"
+        },
+        "applied_by_id": {
+          "type": "ManyToOne",
+          "entity": "Users",
+          "required": false,
+          "onDelete": "SET NULL"
+        }
+      },
+      "indexes": [
+        {
+          "columns": ["definition_id"],
+          "name": "idx_ghareeb_word_def_apps_definition_id"
+        },
+        {
+          "columns": ["ghareeb_word_id"],
+          "name": "idx_ghareeb_word_def_apps_word_id"
+        },
+        {
+          "columns": ["is_custom"],
+          "name": "idx_ghareeb_word_def_apps_is_custom"
+        }
+      ],
+      "constraints": [
+        {
+          "type": "UNIQUE",
+          "name": "ghareeb_word_def_apps_word_def_unique",
+          "columns": ["definition_id", "ghareeb_word_id"]
+        }
+      ]
+    },
+    {
+      "name": "GhareebWordCandidates",
+      "create_pagination_route": true,
+      "create_relation_get_route": false,
+      "properties": {
+        "rank": {
+          "type": "int4",
+          "comment": "LLM ranking — 1 best, 2 second, 3 third"
+        },
+        "status": {
+          "type": "enum",
+          "enum": ["pending_review", "approved", "rejected"],
+          "default": "pending_review",
+          "dbEnumName": "ghareeb_word_candidates_status_enum"
+        },
+        "llm_model": {
+          "type": "varchar",
+          "required": false
+        },
+        "batch_id": {
+          "type": "varchar",
+          "required": false
+        },
+        "meta": {
+          "type": "jsonb",
+          "required": false,
+          "default": "'{}'::jsonb"
+        }
+      },
+      "relations": {
+        "ghareeb_word_id": {
+          "type": "ManyToOne",
+          "entity": "GhareebWordOccurrences",
+          "required": true,
+          "onDelete": "CASCADE"
+        },
+        "knowledge_point_id": {
+          "type": "ManyToOne",
+          "entity": "KnowledgePointsEntity",
+          "required": true,
+          "onDelete": "CASCADE"
+        }
+      },
+      "indexes": [
+        {
+          "columns": ["ghareeb_word_id"],
+          "name": "idx_ghareeb_word_candidates_word_id"
+        },
+        {
+          "columns": ["knowledge_point_id"],
+          "name": "idx_ghareeb_word_candidates_knp_id"
+        },
+        {
+          "columns": ["status"],
+          "name": "idx_ghareeb_word_candidates_status"
+        },
+        {
+          "columns": ["ghareeb_word_id", "rank"],
+          "name": "idx_ghareeb_word_candidates_word_rank"
+        }
+      ],
+      "constraints": [
+        {
+          "type": "UNIQUE",
+          "name": "ghareeb_word_candidates_word_knp_unique",
+          "columns": ["ghareeb_word_id", "knowledge_point_id"]
+        },
+        {
+          "type": "CHECK",
+          "name": "ghareeb_word_candidates_rank_check",
+          "expression": "rank >= 1 AND rank <= 3"
+        }
+      ]
     }
   ]
 }
